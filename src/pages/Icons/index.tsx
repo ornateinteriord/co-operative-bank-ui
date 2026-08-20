@@ -90,7 +90,22 @@ import {
   XCircle,
   PlusCircle,
   IndianRupee,
-  Info
+  Info,
+  PieChart,
+  GitBranch,
+  Building2,
+  UserCheck,
+  UserCog,
+  Users,
+  BookOpen,
+  ArrowLeftRight,
+  CalendarClock,
+  Repeat,
+  Clock,
+  Briefcase,
+  Coins,
+  Layers,
+  BadgePercent
 } from "lucide-react";
 
 export const LucideIcons = {
@@ -114,6 +129,21 @@ export const LucideIcons = {
   PlusCircle,
   IndianRupee,
   Info,
+  PieChart,
+  GitBranch,
+  Building2,
+  UserCheck,
+  UserCog,
+  Users,
+  BookOpen,
+  ArrowLeftRight,
+  CalendarClock,
+  Repeat,
+  Clock,
+  Briefcase,
+  Coins,
+  Layers,
+  BadgePercent,
 };
 
 import Dashboard from "@mui/icons-material/Dashboard";

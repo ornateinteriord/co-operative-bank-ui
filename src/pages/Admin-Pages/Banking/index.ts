@@ -3,6 +3,10 @@ export { default as Payments } from "./Payments";
 export { default as CashTransaction } from "./CashTransaction";
 export { default as BankTransaction } from "./BankTransaction";
 export { default as JournalEntries } from "./JournalEntries";
+export { default as Contra } from "./Contra";
+export { default as StandingInstruction } from "./StandingInstruction";
+export { default as PayDemand } from "./PayDemand";
+export { default as DDCreations } from "./DDCreations";
 
 // RD Account exports
 export { default as RDOpening } from "./RD/RDOpening";

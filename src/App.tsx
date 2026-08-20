@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import "./index.css";
-import { CircularProgress, Box } from "@mui/material";
+import { CircularProgress, Box, Typography } from "@mui/material";
 
 import Members, {
   ActiveMembers,
@@ -26,8 +26,6 @@ import {
   UsedPackages,
 } from "./pages/Admin-Pages/Packages/Packages";
 import KYCApproval from "./pages/Admin-Pages/KYCApproval/KYCApproval";
-import Tree from "./pages/User-Pages/Team/Tree";
-import Team from "./pages/User-Pages/Team/Team";
 import ProtectedRoute from "./routeProtecter/RouteProtecter";
 import useAuth from "./hooks/use-auth";
 import PublicRoute from "./routeProtecter/PublicRoutes";
@@ -102,6 +100,8 @@ const AdminChat = lazy(() => import("./pages/Admin-Pages/AdminChat/AdminChat"));
 const Admin01Dashboard = lazy(() => import("./pages/Admin-Pages/Admin01Dashboard/Dashboard"));
 const Admin01Members = lazy(() => import("./pages/Administration/Members"));
 const Admin01Interests = lazy(() => import("./pages/Administration/Interests"));
+const Admin01Branches = lazy(() => import("./pages/Administration/Branches"));
+const Admin01Shares = lazy(() => import("./pages/Administration/Shares"));
 
 // Agent Pages
 const AgentDashboard = lazy(() => import("./pages/Agent/AgentDashboard"));
@@ -115,6 +115,13 @@ const BankingAgents = lazy(() => import("./pages/Administration/Agents"));
 const AdminReceipts = lazy(() => import("./pages/Admin-Pages/Banking/Receipts"));
 const AdminPayments = lazy(() => import("./pages/Admin-Pages/Banking/Payments"));
 const AdminCashTransaction = lazy(() => import("./pages/Admin-Pages/Banking/CashTransaction"));
+const AdminContra = lazy(() => import("./pages/Admin-Pages/Banking/Contra"));
+const AdminJournal = lazy(() => import("./pages/Admin-Pages/Banking/JournalEntries"));
+const AdminStandingInstruction = lazy(() => import("./pages/Admin-Pages/Banking/StandingInstruction"));
+const AdminPayDemand = lazy(() => import("./pages/Admin-Pages/Banking/PayDemand"));
+const AdminDDCreations = lazy(() => import("./pages/Admin-Pages/Banking/DDCreations"));
+const DepositCalculator = lazy(() => import("./pages/Admin-Pages/Banking/Calculators/DepositCalculator"));
+const LoanMasterPage = lazy(() => import("./pages/Admin-Pages/Loan/LoanMasterPage"));
 const AgentAssignment = lazy(() => import("./pages/Admin-Pages/AgentAssignment/AgentAssignment"));
 const AdminWithdrawalRequests = lazy(() => import("./pages/Admin-Pages/Withdrawal/WithdrawalRequests"));
 
@@ -148,49 +155,27 @@ const MISPayMaturity = lazy(() => import("./pages/Admin-Pages/Banking/MIS/MISPay
 
 
 
-// user pages
-const UserDashboard = lazy(
-  () => import("./pages/User-Pages/UserDashboard/Dashboard")
-);
-const UserAddOnPackages = lazy(() => import("./pages/User-Pages/Packages/UserAddOnPackages"));
-const UserPackageHistory = lazy(
-  () => import("./pages/User-Pages/Packages/PackageHistory")
-);
-const UserTransaction = lazy(
-  () => import("./pages/User-Pages/Transaction/WalletTransaction")
-);
-const UserLoanTransaction = lazy(
-  () => import("./pages/User-Pages/Transaction/LoanTransaction")
-);
-const UserMailBox = lazy(() => import("./pages/User-Pages/MailBox/MailBox"));
+// User Pages
+const UserDashboard = lazy(() => import("./pages/User-Pages/UserDashboard/Dashboard"));
 const UserProfile = lazy(() => import("./pages/User-Pages/Profile/Profile"));
 const UserKYC = lazy(() => import("./pages/User-Pages/KYC/KYC"));
-const UserChangePassword = lazy(
-  () => import("./pages/User-Pages/Change-Password/ChangePassword")
-);
+const UserChangePassword = lazy(() => import("./pages/User-Pages/Change-Password/ChangePassword"));
 const UserActivate = lazy(() => import("./pages/User-Pages/Activate/Activate"));
-const UserNewResgister = lazy(
-  () => import("./pages/User-Pages/Team/NewResgister")
-);
-const UserUsedPackage = lazy(
-  () => import("./pages/User-Pages/Packages/UsedPackage")
-);
-const UserUnUsedPackage = lazy(
-  () => import("./pages/User-Pages/Packages/UnUsedPackage")
-);
-const UserTransferPackage = lazy(
-  () => import("./pages/User-Pages/Packages/TransferPackage")
-);
+const UserAddOnPackages = lazy(() => import("./pages/User-Pages/Packages/UserAddOnPackages"));
+const UserUsedPackage = lazy(() => import("./pages/User-Pages/Packages/UsedPackage"));
+const UserUnUsedPackage = lazy(() => import("./pages/User-Pages/Packages/UnUsedPackage"));
+const UserTransferPackage = lazy(() => import("./pages/User-Pages/Packages/TransferPackage"));
+const UserPackageHistory = lazy(() => import("./pages/User-Pages/Packages/PackageHistory"));
+const Tree = lazy(() => import("./pages/User-Pages/Team/Tree"));
+const Team = lazy(() => import("./pages/User-Pages/Team/Team"));
+const UserNewResgister = lazy(() => import("./pages/User-Pages/Team/NewResgister"));
 const UserDirect = lazy(() => import("./pages/User-Pages/Team/Direct"));
-const UserLevelBenifits = lazy(
-  () => import("./pages/User-Pages/Earnings/LeveBenifits")
-);
-const UserDailyPayout = lazy(
-  () => import("./pages/User-Pages/Earnings/DailyPayout")
-);
-const UserROIBenefits = lazy(
-  () => import("./pages/User-Pages/Earnings/ROIBenefits")
-);
+const UserLevelBenifits = lazy(() => import("./pages/User-Pages/Earnings/LeveBenifits"));
+const UserDailyPayout = lazy(() => import("./pages/User-Pages/Earnings/DailyPayout"));
+const UserROIBenefits = lazy(() => import("./pages/User-Pages/Earnings/ROIBenefits"));
+const UserTransaction = lazy(() => import("./pages/User-Pages/Transaction/WalletTransaction"));
+const UserLoanTransaction = lazy(() => import("./pages/User-Pages/Transaction/LoanTransaction"));
+const UserMailBox = lazy(() => import("./pages/User-Pages/MailBox/MailBox"));
 const UserWallet = lazy(() => import("./pages/User-Pages/Wallet/Wallet"));
 const UserSupportChat = lazy(() => import("./pages/User-Pages/SupportChat/SupportChat"));
 const UserChat = lazy(() => import("./pages/User-Pages/Chat/Chat"));
@@ -198,12 +183,9 @@ const UserOverdraft = lazy(() => import("./pages/User-Pages/Overdraft/Overdraft"
 const UserAccountOpening = lazy(() => import("./pages/User-Pages/AccountOpening/AccountOpening"));
 const UserAgentWallet = lazy(() => import("./pages/User-Pages/Wallet/AgentWallet"));
 
-
-
 const LoansMemberPending = lazy(() => import("./pages/Loans/Loanspending/Pending"));
 const LoansMemberProcessed = lazy(() => import("./pages/Loans/Loansprocesssed/Processed"));
 const LoansRepaymentsList = lazy(() => import("./pages/Loans/Repaymentlist/LoansList"));
-// const LoansRepaymentsPlaceholder = lazy(() => import("./pages/Loans/Repayments/RepaymentPlaceholder"));
 
 export const LoadingComponent = () => {
   return (
@@ -220,6 +202,25 @@ export const LoadingComponent = () => {
       backgroundColor: 'rgba(255, 255, 255, 0.5)'
     }}>
       <CircularProgress sx={{ color: '#1a237e' }} />
+    </Box>
+  );
+};
+
+export const PageContentLoader = () => {
+  return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: 'calc(100vh - 120px)',
+      width: '100%',
+      gap: 2,
+    }}>
+      <CircularProgress sx={{ color: '#1a237e' }} size={42} />
+      <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, letterSpacing: '0.5px' }}>
+        Loading...
+      </Typography>
     </Box>
   );
 };
@@ -243,22 +244,28 @@ const ShouldShowFooter = () => {
   return !noFooterPaths.includes(location.pathname);
 };
 
+const globalQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   const [isOpen, setIsOpen] = useState(() => window.innerWidth > 768);
 
-  const queryClient = new QueryClient();
-
   return (
     <UserProvider>
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={globalQueryClient}>
         <ToastContainer
           toastClassName="bg-white shadow-lg rounded-lg p-4"
           className="text-sm text-gray-800"
           style={{ width: 'auto', minWidth: '25rem' }} />
         <Router>
           <Suspense fallback={<LoadingComponent />}>
-
             <RoutesProvider
               isOpen={isOpen}
               setIsOpen={setIsOpen}
@@ -325,7 +332,8 @@ const RoutesProvider = ({
             paddingBottom: !isAdmin && isLoggedIn ? "10px" : "0"
           }}
         >
-          <Routes>
+          <Suspense fallback={<PageContentLoader />}>
+            <Routes>
             <Route path="/impersonate" element={<Impersonate />} />
             {/* public routes */}
             <Route element={<PublicRoute />}>
@@ -431,6 +439,8 @@ const RoutesProvider = ({
             <Route element={<ProtectedRoute allowedRoles={["ADMIN_01"]} />}>
               <Route path="/admin_01/dashboard" element={<Admin01Dashboard />} />
               <Route path="/admin_01/members" element={<Admin01Members />} />
+              <Route path="/admin_01/shares" element={<Admin01Shares />} />
+              <Route path="/admin_01/branches" element={<Admin01Branches />} />
               <Route path="/banking/interestrate" element={<Admin01Interests />} />
               {/* Admin Banking Routes */}
               <Route path="/banking/agents" element={<BankingAgents />} />
@@ -439,6 +449,11 @@ const RoutesProvider = ({
               <Route path="/admin/banking/receipts" element={<AdminReceipts />} />
               <Route path="/admin/banking/payments" element={<AdminPayments />} />
               <Route path="/admin/banking/cash-transaction" element={<AdminCashTransaction />} />
+              <Route path="/admin/banking/contra" element={<AdminContra />} />
+              <Route path="/admin/banking/cantra" element={<AdminContra />} />
+              <Route path="/admin/banking/journal" element={<AdminJournal />} />
+              <Route path="/admin/banking/standing-instruction" element={<AdminStandingInstruction />} />
+              <Route path="/admin/banking/pay-demand" element={<AdminPayDemand />} />
               
               {/* Accounts */}
               <Route path="/SBaccount/sb-opening" element={<SBOpening />} />
@@ -471,6 +486,23 @@ const RoutesProvider = ({
               <Route path="/banking/fd-opening" element={<FDOpening />} />
               <Route path="/banking/pigmy-opening" element={<PigmyOpening />} />
               <Route path="/banking/mis-opening" element={<MISOpening />} />
+
+              {/* Deposit Calculators */}
+              <Route path="/banking/rd-calculator" element={<DepositCalculator type="RD" />} />
+              <Route path="/banking/fd-calculator" element={<DepositCalculator type="FD" />} />
+              <Route path="/banking/pigmy-calculator" element={<DepositCalculator type="PIGMY" />} />
+              <Route path="/banking/mis-calculator" element={<DepositCalculator type="MIS" />} />
+
+              {/* Loan Master Routes */}
+              <Route path="/admin/loans/personal" element={<LoanMasterPage loanType="Personal" />} />
+              <Route path="/admin/loans/mortgage" element={<LoanMasterPage loanType="Mortgage" />} />
+              <Route path="/admin/loans/gold" element={<LoanMasterPage loanType="Gold" />} />
+              <Route path="/admin/loans/business" element={<LoanMasterPage loanType="Business" />} />
+              <Route path="/admin/loans/house" element={<LoanMasterPage loanType="House" />} />
+              <Route path="/admin/loans/other" element={<LoanMasterPage loanType="Other" />} />
+
+              {/* DD Creations */}
+              <Route path="/admin_01/dd-creations" element={<AdminDDCreations />} />
 
             </Route>
 
@@ -561,6 +593,7 @@ const RoutesProvider = ({
               </Route>
             </Route>
           </Routes>
+          </Suspense>
           {hideSidebar && shouldShowFooter && <Footer />}
         </div>
       </div>
