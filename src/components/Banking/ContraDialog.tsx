@@ -10,10 +10,6 @@ import {
     Typography,
     IconButton,
     CircularProgress,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    FormLabel,
     Grid,
     MenuItem,
     Paper,
@@ -55,11 +51,11 @@ const ContraDialog: React.FC<ContraDialogProps> = ({ open, onClose, contraId, in
     const [submitting, setSubmitting] = useState(false);
 
     // Member lookup hooks
-    const { data: memberInfo, isLoading: loadingMember, isError: memberError } = useGetMemberBasicInfo(
+    const { data: memberInfo, isLoading: loadingMember } = useGetMemberBasicInfo(
         formData.member_id,
         fetchMemberInfo
     );
-    const { data: memberAccounts, isLoading: loadingAccounts } = useGetMemberAccountsPublic(
+    const { data: memberAccounts } = useGetMemberAccountsPublic(
         formData.member_id,
         fetchMemberInfo && !!memberInfo?.success
     );

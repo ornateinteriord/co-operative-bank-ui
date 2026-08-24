@@ -8,6 +8,7 @@ import {
   Paper,
   Button,
   Divider,
+  Stack,
 } from '@mui/material';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';

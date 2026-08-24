@@ -14,7 +14,6 @@ import {
   MenuItem,
   Paper,
   Alert,
-  Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';

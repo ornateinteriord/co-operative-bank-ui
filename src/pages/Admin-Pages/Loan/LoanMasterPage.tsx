@@ -20,7 +20,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CloseIcon from '@mui/icons-material/Close';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
 import LoanDialog, { LoanFormData, LoanTypeCategory } from '../../../components/Loan/LoanDialog';
