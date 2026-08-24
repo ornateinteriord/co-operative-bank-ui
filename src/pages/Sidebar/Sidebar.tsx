@@ -8,7 +8,6 @@ import { SideBarMenuItemType } from '../../store/store';
 import { ExpandMoreIcon, ExpandLessIcon } from '../Icons';
 import { deepOrange } from '@mui/material/colors';
 import { useGetMemberDetails } from '../../api/Memeber';
-import { LoadingComponent } from '../../App';
 import { toast } from 'react-toastify';
 import TokenService from '../../api/token/tokenService';
 
@@ -16,6 +15,7 @@ import TokenService from '../../api/token/tokenService';
 
 const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => void, role: string | null }) => {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [expandedNestedItems, setExpandedNestedItems] = useState<Record<string, boolean>>({});
   const [selectedItem, setSelectedItem] = useState<string | null>('Dashboard');
   const [closingItem, setClosingItem] = useState<string | null>(null);
 
@@ -38,6 +38,13 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
     setExpandedItem(prev => prev === itemName ? null : itemName);
   };
 
+  const handleNestedToggle = (subItemName: string) => {
+    setExpandedNestedItems(prev => ({
+      ...prev,
+      [subItemName]: !prev[subItemName]
+    }));
+  };
+
   const handleSelect = (itemName: string) => {
     setSelectedItem(itemName);
     // Close sidebar on mobile regardless of submenu state
@@ -50,9 +57,34 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
       role === "ADMIN" ? AdminSideBarMenuItems :
         role === "AGENT" ? AgentSideBarMenuItems :
           UserSideBarMenuItems;
+
+  useEffect(() => {
+    for (const item of menuItems) {
+      if (item.path === location.pathname) {
+        setSelectedItem(item.name);
+      }
+      if (item.subItems) {
+        for (const subItem of item.subItems) {
+          if (subItem.path === location.pathname) {
+            setExpandedItem(item.name);
+            setSelectedItem(subItem.name);
+          }
+          if (subItem.subItems) {
+            for (const nestedChild of subItem.subItems) {
+              if (nestedChild.path === location.pathname) {
+                setExpandedItem(item.name);
+                setExpandedNestedItems(prev => ({ ...prev, [subItem.name]: true }));
+                setSelectedItem(nestedChild.name);
+              }
+            }
+          }
+        }
+      }
+    }
+  }, [location.pathname, menuItems]);
   const userId = TokenService.getUserId()
   const memberMutatation = useGetMemberDetails(userId!)
-  const { data: fethedUser, isLoading, isError, error } = memberMutatation
+  const { data: fethedUser, isError, error } = memberMutatation
   const name = fethedUser?.Name || fethedUser?.username
 
   useEffect(() => {
@@ -237,9 +269,151 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
                     <AnimatePresence>
                       {(expandedItem === item.name || closingItem === item.name) && item.subItems?.map(subItem => {
                         const isSubItemActive = location.pathname === subItem.path;
+                        const hasNestedChildren = subItem.isExpandable && Boolean(subItem.subItems && subItem.subItems.length > 0);
+                        const isNestedExpanded = Boolean(expandedNestedItems[subItem.name]);
+                        const isSubGroupActive = subItem.subItems?.some(child => location.pathname === child.path);
                         const subItemBackground = isSubItemActive && isNidhiRole
                           ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%)'
                           : 'transparent';
+
+                        if (hasNestedChildren) {
+                          return (
+                            <motion.div
+                              key={subItem.name}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleNestedToggle(subItem.name);
+                                }}
+                                className={`sub-item nested-header ${isSubGroupActive ? 'selected' : ''}`}
+                                style={isNidhiRole ? {
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '8px 12px',
+                                  color: isSubGroupActive ? 'white' : 'rgba(255, 255, 255, 0.85)',
+                                  background: isSubGroupActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                  borderRadius: '6px',
+                                  margin: '2px 8px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.3s ease',
+                                } : {
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '5px 10px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <span
+                                  className="sub-item-icon"
+                                  style={isNidhiRole ? {
+                                    color: isSubGroupActive ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '20px',
+                                  } : {}}
+                                >
+                                  {subItem.icon}
+                                </span>
+                                <span
+                                  className="sub-item-name"
+                                  style={isNidhiRole ? {
+                                    fontWeight: '500',
+                                    fontSize: '0.85rem',
+                                    flex: 1,
+                                  } : { flex: 1 }}
+                                >
+                                  {subItem.name}
+                                </span>
+                                <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                                  {isNestedExpanded ? (
+                                    <ExpandLessIcon style={{ fontSize: '18px' }} />
+                                  ) : (
+                                    <ExpandMoreIcon style={{ fontSize: '18px' }} />
+                                  )}
+                                </span>
+                              </div>
+
+                              <AnimatePresence>
+                                {isNestedExpanded && (
+                                  <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={isNidhiRole ? {
+                                      paddingLeft: '8px',
+                                      margin: '2px 0 4px 16px',
+                                      borderLeft: '1px dashed rgba(255, 255, 255, 0.2)',
+                                    } : {
+                                      paddingLeft: '15px',
+                                    }}
+                                  >
+                                    {subItem.subItems?.map((nestedChild) => {
+                                      const isChildActive = location.pathname === nestedChild.path;
+                                      const childBackground = isChildActive && isNidhiRole
+                                        ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.4) 100%)'
+                                        : 'transparent';
+
+                                      return (
+                                        <Link
+                                          key={nestedChild.name}
+                                          to={nestedChild.path ?? '#'}
+                                          className={`sub-item ${isChildActive ? 'selected' : ''}`}
+                                          onClick={() => {
+                                            handleSelect(nestedChild.name);
+                                          }}
+                                          style={isNidhiRole ? {
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            padding: '7px 10px',
+                                            color: isChildActive ? 'white' : 'rgba(255, 255, 255, 0.75)',
+                                            background: childBackground,
+                                            borderRadius: '6px',
+                                            margin: '2px 4px',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.2s ease',
+                                            cursor: 'pointer',
+                                            fontSize: '0.8rem',
+                                            fontWeight: isChildActive ? '600' : '400',
+                                          } : {}}
+                                        >
+                                          <span
+                                            className="sub-item-icon"
+                                            style={isNidhiRole ? {
+                                              color: isChildActive ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              width: '16px',
+                                            } : {}}
+                                          >
+                                            {nestedChild.icon}
+                                          </span>
+                                          <span
+                                            className="sub-item-name"
+                                            style={isNidhiRole ? {
+                                              flex: 1,
+                                            } : {}}
+                                          >
+                                            {nestedChild.name}
+                                          </span>
+                                        </Link>
+                                      );
+                                    })}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </motion.div>
+                          );
+                        }
 
                         return (
                           <motion.div
@@ -302,7 +476,6 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
             );
           })}
         </AnimatePresence>
-        {isLoading && <LoadingComponent />}
       </div>
     </motion.div>
   );
