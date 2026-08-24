@@ -23,6 +23,7 @@ import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { toast } from 'react-toastify';
 import { useGetMemberBasicInfo } from '../../queries/transfer';
+import { useCreateLoan, useUpdateLoan } from '../../queries/banking';
 
 export type LoanTypeCategory = 'Personal' | 'Mortgage' | 'Gold' | 'Business' | 'House' | 'Other';
 
@@ -228,6 +229,9 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
     setFormError(null);
   };
 
+  const createLoanMutation = useCreateLoan();
+  const updateLoanMutation = useUpdateLoan();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -256,11 +260,18 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
         emi_amount: Number(formData.emi_amount),
       };
 
+      if (loanId) {
+        await updateLoanMutation.mutateAsync({ loanId: formData.account_no || loanId, data: payload });
+        toast.success(`${loanType} Loan updated successfully`);
+      } else {
+        await createLoanMutation.mutateAsync(payload);
+        toast.success(`${loanType} Loan created successfully`);
+      }
+
       onSave(payload);
-      toast.success(loanId ? `${loanType} Loan updated successfully` : `${loanType} Loan created successfully`);
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save loan');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save loan');
     } finally {
       setSubmitting(false);
     }

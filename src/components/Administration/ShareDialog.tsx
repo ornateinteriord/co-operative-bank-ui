@@ -24,6 +24,7 @@ import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { toast } from 'react-toastify';
 import { useGetMemberBasicInfo } from '../../queries/transfer';
 import TokenService from '../../queries/token/tokenService';
+import { useCreateShare, useUpdateShare } from '../../queries/banking';
 
 export interface ShareFormData {
   id?: string;
@@ -175,6 +176,9 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
     setFormError(null);
   };
 
+  const createShareMutation = useCreateShare();
+  const updateShareMutation = useUpdateShare();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -200,11 +204,18 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
         total_amount: Number(formData.number_of_shares) * Number(formData.face_value),
       };
 
+      if (shareId) {
+        await updateShareMutation.mutateAsync({ shareId: formData.share_id || shareId, data: payload });
+        toast.success('Share record updated successfully');
+      } else {
+        await createShareMutation.mutateAsync(payload);
+        toast.success('Share record created successfully');
+      }
+
       onSave(payload);
-      toast.success(shareId ? 'Share record updated successfully' : 'Share record created successfully');
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save share');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save share');
     } finally {
       setSubmitting(false);
     }

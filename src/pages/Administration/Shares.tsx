@@ -23,6 +23,7 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminReusableTable from '../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetShares, useDeleteShare } from '../../queries/banking';
 import ShareDialog, { ShareFormData } from '../../components/Administration/ShareDialog';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 
@@ -121,24 +122,35 @@ const Shares: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [shareToView, setShareToView] = useState<ShareFormData | null>(null);
 
+  const { data: sharesData, isLoading } = useGetShares(page, 10, searchQuery);
+  const deleteShareMutation = useDeleteShare();
+
+  const currentShares = (sharesData?.data && sharesData.data.length > 0)
+    ? sharesData.data
+    : dataList;
+
   // Search filter
-  const filteredData = dataList.filter((item) => {
+  const filteredData = currentShares.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.certificate_no.toLowerCase().includes(q) ||
-      item.folio_no.toLowerCase().includes(q) ||
-      item.member_id.toLowerCase().includes(q) ||
-      item.member_name.toLowerCase().includes(q) ||
-      item.share_type.toLowerCase().includes(q) ||
-      item.branch_code.toLowerCase().includes(q)
+      (item.certificate_no && item.certificate_no.toLowerCase().includes(q)) ||
+      (item.folio_no && item.folio_no.toLowerCase().includes(q)) ||
+      (item.member_id && item.member_id.toLowerCase().includes(q)) ||
+      (item.member_name && item.member_name.toLowerCase().includes(q)) ||
+      (item.share_type && item.share_type.toLowerCase().includes(q)) ||
+      (item.nominee_name && item.nominee_name.toLowerCase().includes(q))
     );
   });
 
-  const paginatedData = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = sharesData?.pagination?.total || filteredData.length;
+
+  const paginatedData = (sharesData?.data && sharesData.data.length > 0)
+    ? sharesData.data.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -394,10 +406,15 @@ const Shares: React.FC = () => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (shareToDelete) {
+      try {
+        await deleteShareMutation.mutateAsync(shareToDelete);
+        toast.success('Share allotment record deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete share record');
+      }
       setDataList((prev) => prev.filter((item) => item.certificate_no !== shareToDelete));
-      toast.success('Share allotment record deleted successfully');
       setShareToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -422,7 +439,7 @@ const Shares: React.FC = () => {
     toast.info('Exporting Share Capital records to Excel...');
   };
 
-  const selectedShareData = dataList.find((item) => item.certificate_no === selectedShareId) || null;
+  const selectedShareData = currentShares.find((item: any) => item.certificate_no === selectedShareId || item.share_id === selectedShareId) || null;
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -463,7 +480,7 @@ const Shares: React.FC = () => {
         columns={columns}
         data={paginatedData}
         title="Share Capital Management"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={handleSearchChange}
         onSearch={handleSearch}
         onClearSearch={handleClearSearch}
@@ -471,8 +488,8 @@ const Shares: React.FC = () => {
         paginationPerPage={10}
         actions={tableActions}
         onExport={handleExport}
-        emptyMessage="No share allotments found"
-        totalCount={filteredData.length}
+        emptyMessage="No share records found"
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

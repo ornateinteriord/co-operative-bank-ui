@@ -22,6 +22,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TokenService from '../../queries/token/tokenService';
 import { toast } from 'react-toastify';
+import { useCreateStandingInstruction, useUpdateStandingInstruction } from '../../queries/banking';
 
 export interface StandingInstructionFormData {
   id?: string;
@@ -141,6 +142,9 @@ const StandingInstructionDialog: React.FC<StandingInstructionDialogProps> = ({
     setFormError(null);
   };
 
+  const createSIMutation = useCreateStandingInstruction();
+  const updateSIMutation = useUpdateStandingInstruction();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -170,11 +174,18 @@ const StandingInstructionDialog: React.FC<StandingInstructionDialogProps> = ({
         amount: Number(formData.amount),
       };
 
+      if (instructionId) {
+        await updateSIMutation.mutateAsync({ siId: formData.si_id || instructionId, data: payload });
+        toast.success('Standing instruction updated successfully');
+      } else {
+        await createSIMutation.mutateAsync(payload);
+        toast.success('Standing instruction created successfully');
+      }
+
       onSave(payload);
-      toast.success(instructionId ? 'Standing instruction updated successfully' : 'Standing instruction created successfully');
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save standing instruction');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save standing instruction');
     } finally {
       setSubmitting(false);
     }
