@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -216,10 +216,14 @@ const initialLoanDataset: Record<LoanTypeCategory, LoanFormData[]> = {
 };
 
 const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
-  const fallbackData = initialLoanDataset[loanType] || [];
+  const [dataList, setDataList] = useState<LoanFormData[]>(initialLoanDataset[loanType] || []);
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    setDataList(initialLoanDataset[loanType] || []);
+  }, [loanType]);
 
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -266,7 +270,7 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
         business_gstin: l.business_gstin,
         annual_turnover: l.annual_turnover,
       }))
-    : fallbackData;
+    : dataList;
 
   // Search filter
   const filteredData = currentLoans.filter((item: any) => {
