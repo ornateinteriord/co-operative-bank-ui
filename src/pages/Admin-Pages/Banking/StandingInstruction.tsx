@@ -23,6 +23,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetStandingInstructions, useDeleteStandingInstruction } from '../../../queries/banking';
 import StandingInstructionDialog, { StandingInstructionFormData } from '../../../components/Banking/StandingInstructionDialog';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 
@@ -107,25 +108,36 @@ const StandingInstruction: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [instructionToView, setInstructionToView] = useState<StandingInstructionFormData | null>(null);
 
+  const { data: siData, isLoading } = useGetStandingInstructions(page, 10, searchQuery);
+  const deleteSIMutation = useDeleteStandingInstruction();
+
+  const currentInstructions = (siData?.data && siData.data.length > 0)
+    ? siData.data
+    : dataList;
+
   // Search filter
-  const filteredData = dataList.filter((item) => {
+  const filteredData = currentInstructions.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.si_id.toLowerCase().includes(q) ||
-      item.dr_account.toLowerCase().includes(q) ||
-      item.cr_account.toLowerCase().includes(q) ||
-      item.section_id.toLowerCase().includes(q) ||
-      item.user.toLowerCase().includes(q) ||
-      item.narration.toLowerCase().includes(q) ||
-      item.frequency.toLowerCase().includes(q)
+      (item.si_id && item.si_id.toLowerCase().includes(q)) ||
+      (item.dr_account && item.dr_account.toLowerCase().includes(q)) ||
+      (item.cr_account && item.cr_account.toLowerCase().includes(q)) ||
+      (item.section_id && item.section_id.toLowerCase().includes(q)) ||
+      (item.user && item.user.toLowerCase().includes(q)) ||
+      (item.narration && item.narration.toLowerCase().includes(q)) ||
+      (item.frequency && item.frequency.toLowerCase().includes(q))
     );
   });
 
-  const paginatedData = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = siData?.pagination?.total || filteredData.length;
+
+  const paginatedData = (siData?.data && siData.data.length > 0)
+    ? siData.data.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -378,10 +390,15 @@ const StandingInstruction: React.FC = () => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (instructionToDelete) {
+      try {
+        await deleteSIMutation.mutateAsync(instructionToDelete);
+        toast.success('Standing instruction deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete standing instruction');
+      }
       setDataList((prev) => prev.filter((item) => item.si_id !== instructionToDelete));
-      toast.success('Standing instruction deleted successfully');
       setInstructionToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -406,7 +423,7 @@ const StandingInstruction: React.FC = () => {
     toast.info('Exporting Standing Instructions to Excel...');
   };
 
-  const selectedInstructionData = dataList.find((item) => item.si_id === selectedInstructionId) || null;
+  const selectedInstructionData = currentInstructions.find((item: any) => item.si_id === selectedInstructionId) || null;
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -447,7 +464,7 @@ const StandingInstruction: React.FC = () => {
         columns={columns}
         data={paginatedData}
         title="Standing Instructions Management"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={handleSearchChange}
         onSearch={handleSearch}
         onClearSearch={handleClearSearch}
@@ -456,7 +473,7 @@ const StandingInstruction: React.FC = () => {
         actions={tableActions}
         onExport={handleExport}
         emptyMessage="No standing instructions found"
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

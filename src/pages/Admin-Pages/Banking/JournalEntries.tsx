@@ -20,6 +20,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useReactToPrint } from 'react-to-print';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetJournals, useDeleteJournal } from '../../../queries/banking';
 import JournalDialog from '../../../components/Banking/JournalDialog';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 import JournalPrint from '../../../components/Print-components/Journal/journal';
@@ -100,25 +101,48 @@ const JournalEntries: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
   const tablePrintRef = useRef<HTMLDivElement>(null);
 
+  const { data: journalsData, isLoading } = useGetJournals(page, 10, searchQuery);
+  const deleteJournalMutation = useDeleteJournal();
+
+  const currentJournals = (journalsData?.data && journalsData.data.length > 0)
+    ? journalsData.data.map((j: any) => ({
+        id: j._id || j.journal_id,
+        journal_id: j.journal_id || j.journal_no,
+        date: j.date ? new Date(j.date).toISOString().split('T')[0] : '',
+        debit_from: j.debit_from || '-',
+        credit_to: j.credit_to || '-',
+        description: j.description || j.narration || '-',
+        mode_of_entry: j.mode_of_entry || 'Transfer',
+        amount: j.amount || 0,
+        status: j.status || 'active',
+        member_id: j.member_id,
+        account_no: j.account_no,
+      }))
+    : dataList;
+
   // Filtered data based on search query
-  const filteredData = dataList.filter(item => {
+  const filteredData = currentJournals.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.journal_id.toLowerCase().includes(q) ||
-      item.debit_from.toLowerCase().includes(q) ||
+      (item.journal_id && item.journal_id.toLowerCase().includes(q)) ||
+      (item.debit_from && item.debit_from.toLowerCase().includes(q)) ||
       (item.credit_to && item.credit_to.toLowerCase().includes(q)) ||
-      item.description.toLowerCase().includes(q) ||
+      (item.description && item.description.toLowerCase().includes(q)) ||
       (item.member_id && item.member_id.toLowerCase().includes(q)) ||
       (item.account_no && item.account_no.toLowerCase().includes(q)) ||
-      item.mode_of_entry.toLowerCase().includes(q)
+      (item.mode_of_entry && item.mode_of_entry.toLowerCase().includes(q))
     );
   });
 
-  const journals: Journal[] = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = journalsData?.pagination?.total || filteredData.length;
+
+  const journals: Journal[] = (journalsData?.data && journalsData.data.length > 0)
+    ? currentJournals.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -366,10 +390,15 @@ const JournalEntries: React.FC = () => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (journalToDelete) {
+      try {
+        await deleteJournalMutation.mutateAsync(journalToDelete);
+        toast.success('Journal entry deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete journal entry');
+      }
       setDataList(prev => prev.filter(item => item.journal_id !== journalToDelete));
-      toast.success('Journal entry deleted successfully');
       setJournalToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -400,7 +429,7 @@ const JournalEntries: React.FC = () => {
     toast.info('Exporting Journal entries to Excel...');
   };
 
-  const selectedJournalData = dataList.find(item => item.journal_id === selectedJournalId);
+  const selectedJournalData = currentJournals.find((item: any) => item.journal_id === selectedJournalId);
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -446,7 +475,7 @@ const JournalEntries: React.FC = () => {
         columns={columns}
         data={journals}
         title="Journal Management"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={handleSearchChange}
         onSearch={handleSearch}
         onClearSearch={handleClearSearch}
@@ -455,7 +484,7 @@ const JournalEntries: React.FC = () => {
         actions={tableActions}
         onExport={handleExport}
         emptyMessage="No journal entries found"
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

@@ -21,6 +21,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import BusinessIcon from '@mui/icons-material/Business';
 import { toast } from 'react-toastify';
+import { useCreateBranch, useUpdateBranch } from '../../queries/banking';
 
 export interface BranchFormData {
   id?: string;
@@ -121,6 +122,9 @@ const BranchDialog: React.FC<BranchDialogProps> = ({
     setFormError(null);
   };
 
+  const createBranchMutation = useCreateBranch();
+  const updateBranchMutation = useUpdateBranch();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -146,11 +150,18 @@ const BranchDialog: React.FC<BranchDialogProps> = ({
         id: branchId || `BRN-${Date.now().toString().slice(-6)}`,
       };
 
+      if (branchId) {
+        await updateBranchMutation.mutateAsync({ branchId: formData.branch_id || branchId, data: payload });
+        toast.success('Branch updated successfully');
+      } else {
+        await createBranchMutation.mutateAsync(payload);
+        toast.success('Branch created successfully');
+      }
+
       onSave(payload);
-      toast.success(branchId ? 'Branch updated successfully' : 'Branch created successfully');
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save branch');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save branch');
     } finally {
       setSubmitting(false);
     }

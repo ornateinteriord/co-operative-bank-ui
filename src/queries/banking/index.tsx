@@ -219,3 +219,4 @@ export const useGetCashTransactions = (
 };
 
 export type { Receipt, Payment };
+export * from "./newBankingQueries";

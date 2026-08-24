@@ -12,6 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetPayDemands, useDeletePayDemand } from '../../../queries/banking';
 import PayDemandDialog, { PayDemandFormData } from '../../../components/Banking/PayDemandDialog';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 
@@ -82,24 +83,47 @@ const PayDemand: React.FC = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [demandToDelete, setDemandToDelete] = useState<string | null>(null);
 
+  const { data: payDemandsData, isLoading } = useGetPayDemands(page, 10, searchQuery);
+  const deleteDemandMutation = useDeletePayDemand();
+
+  const currentDemands = (payDemandsData?.data && payDemandsData.data.length > 0)
+    ? payDemandsData.data.map((d: any) => ({
+        id: d._id || d.demand_no,
+        demand_no: d.demand_no || d._id,
+        tran_type: d.tran_type || 'Payment',
+        sub_type: d.sub_type || 'Cash',
+        date_from: d.date_from ? new Date(d.date_from).toISOString().split('T')[0] : '',
+        date_to: d.date_to ? new Date(d.date_to).toISOString().split('T')[0] : '',
+        location: d.location || '-',
+        section_id: d.section_id || '-',
+        user: d.user || '-',
+        show_last_10: d.show_last_10 || false,
+        status: d.status || 'pending',
+      }))
+    : dataList;
+
   // Filtered dataset based on search
-  const filteredData = dataList.filter((item) => {
+  const filteredData = currentDemands.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
       (item.demand_no && item.demand_no.toLowerCase().includes(q)) ||
-      item.tran_type.toLowerCase().includes(q) ||
-      item.sub_type.toLowerCase().includes(q) ||
-      item.location.toLowerCase().includes(q) ||
-      item.section_id.toLowerCase().includes(q) ||
-      item.user.toLowerCase().includes(q)
+      (item.tran_type && item.tran_type.toLowerCase().includes(q)) ||
+      (item.sub_type && item.sub_type.toLowerCase().includes(q)) ||
+      (item.location && item.location.toLowerCase().includes(q)) ||
+      (item.section_id && item.section_id.toLowerCase().includes(q)) ||
+      (item.user && item.user.toLowerCase().includes(q))
     );
   });
 
-  const paginatedData = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = payDemandsData?.pagination?.total || filteredData.length;
+
+  const paginatedData = (payDemandsData?.data && payDemandsData.data.length > 0)
+    ? currentDemands.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -258,10 +282,15 @@ const PayDemand: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (demandToDelete) {
-      setDataList((prev) => prev.filter((item) => item.id !== demandToDelete));
-      toast.success('Pay demand record deleted successfully');
+      try {
+        await deleteDemandMutation.mutateAsync(demandToDelete);
+        toast.success('Pay demand record deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete pay demand');
+      }
+      setDataList((prev) => prev.filter((item) => item.id !== demandToDelete && item.demand_no !== demandToDelete));
       setDemandToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -281,7 +310,7 @@ const PayDemand: React.FC = () => {
     toast.info('Exporting Pay Demand records to Excel...');
   };
 
-  const selectedDemandData = dataList.find((item) => item.id === selectedDemandId) || null;
+  const selectedDemandData = currentDemands.find((item: any) => item.id === selectedDemandId || item.demand_no === selectedDemandId) || null;
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -323,7 +352,7 @@ const PayDemand: React.FC = () => {
         columns={columns}
         data={paginatedData}
         title="Pay Demand Register"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={setSearchInput}
         onSearch={() => setSearchQuery(searchInput)}
         onClearSearch={() => {
@@ -334,7 +363,7 @@ const PayDemand: React.FC = () => {
         paginationPerPage={10}
         actions={tableActions}
         onExport={handleExport}
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

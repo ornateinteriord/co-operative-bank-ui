@@ -20,6 +20,7 @@ import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { toast } from 'react-toastify';
 import { useGetMemberBasicInfo, useGetMemberAccountsPublic } from '../../queries/transfer';
 import TokenService from '../../queries/token/tokenService';
+import { useCreateJournal, useUpdateJournal } from '../../queries/banking';
 
 interface JournalDialogProps {
     open: boolean;
@@ -123,6 +124,9 @@ const JournalDialog: React.FC<JournalDialogProps> = ({ open, onClose, journalId,
         setFetchMemberInfo(true);
     };
 
+    const createJournalMutation = useCreateJournal();
+    const updateJournalMutation = useUpdateJournal();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setFormError(null);
@@ -151,6 +155,7 @@ const JournalDialog: React.FC<JournalDialogProps> = ({ open, onClose, journalId,
                 member_id: formData.member_id || undefined,
                 account_no: formData.selected_account || undefined,
                 description: formData.journal_details,
+                narration: formData.journal_details,
                 amount: parseFloat(formData.amount),
                 mode_of_entry: formData.mode_of_entry,
                 status: 'active',
@@ -158,13 +163,20 @@ const JournalDialog: React.FC<JournalDialogProps> = ({ open, onClose, journalId,
                 entered_by: formData.entered_by,
             };
 
+            if (journalId) {
+                await updateJournalMutation.mutateAsync({ journalId: initialData?.journal_id || journalId, data: payload });
+                toast.success('Journal entry updated successfully');
+            } else {
+                await createJournalMutation.mutateAsync(payload);
+                toast.success('Journal entry created successfully');
+            }
+
             if (onSave) {
                 onSave(payload);
             }
-            toast.success(journalId ? 'Journal entry updated successfully' : 'Journal entry created successfully');
             onClose();
         } catch (error: any) {
-            toast.error(error?.message || 'Operation failed');
+            toast.error(error?.response?.data?.message || error?.message || 'Operation failed');
         } finally {
             setSubmitting(false);
         }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetLoans, useDeleteLoan } from '../../../queries/banking';
 import LoanDialog, { LoanFormData, LoanTypeCategory } from '../../../components/Loan/LoanDialog';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 
@@ -220,6 +221,10 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    setDataList(initialLoanDataset[loanType] || []);
+  }, [loanType]);
+
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
@@ -228,23 +233,66 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [loanToView, setLoanToView] = useState<LoanFormData | null>(null);
 
+  const { data: loansData, isLoading } = useGetLoans(page, 10, loanType, searchQuery);
+  const deleteLoanMutation = useDeleteLoan();
+
+  const currentLoans = (loansData?.data && loansData.data.length > 0)
+    ? loansData.data.map((l: any) => ({
+        id: l._id || l.account_no,
+        account_no: l.account_no || l.loan_id || l._id,
+        loan_type: l.loan_type || loanType,
+        application_date: l.application_date ? new Date(l.application_date).toISOString().split('T')[0] : '',
+        disbursed_date: l.disbursed_date ? new Date(l.disbursed_date).toISOString().split('T')[0] : '',
+        branch_location: l.branch_location || l.branch_code || '-',
+        member_id: l.member_id || '-',
+        member_name: l.member_name || '-',
+        guarantor_name: l.guarantor_name || '-',
+        guarantor_contact: l.guarantor_contact || '-',
+        sanctioned_amount: l.sanctioned_amount || 0,
+        interest_rate: l.interest_rate || 0,
+        tenure_months: l.tenure_months || 0,
+        emi_amount: l.emi_amount || 0,
+        repayment_frequency: l.repayment_frequency || 'Monthly',
+        processing_fee: l.processing_fee || 0,
+        outstanding_balance: l.outstanding_balance ?? l.sanctioned_amount ?? 0,
+        disbursement_mode: l.disbursement_mode || '-',
+        credit_account_no: l.credit_account_no || '',
+        status: l.status || 'active',
+        purpose_of_loan: l.purpose_of_loan,
+        gold_weight: l.gold_weight,
+        gold_purity: l.gold_purity,
+        gold_valuation: l.gold_valuation,
+        gold_packet_no: l.gold_packet_no,
+        property_survey_no: l.property_survey_no,
+        property_valuation: l.property_valuation,
+        property_address: l.property_address,
+        business_name: l.business_name,
+        business_gstin: l.business_gstin,
+        annual_turnover: l.annual_turnover,
+      }))
+    : dataList;
+
   // Search filter
-  const filteredData = dataList.filter((item) => {
+  const filteredData = currentLoans.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.account_no.toLowerCase().includes(q) ||
-      item.member_id.toLowerCase().includes(q) ||
-      item.member_name.toLowerCase().includes(q) ||
-      item.branch_location.toLowerCase().includes(q) ||
+      (item.account_no && item.account_no.toLowerCase().includes(q)) ||
+      (item.member_id && item.member_id.toLowerCase().includes(q)) ||
+      (item.member_name && item.member_name.toLowerCase().includes(q)) ||
+      (item.branch_location && item.branch_location.toLowerCase().includes(q)) ||
       (item.guarantor_name && item.guarantor_name.toLowerCase().includes(q))
     );
   });
 
-  const paginatedData = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = loansData?.pagination?.total || filteredData.length;
+
+  const paginatedData = (loansData?.data && loansData.data.length > 0)
+    ? currentLoans.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -460,10 +508,15 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (loanToDelete) {
-      setDataList((prev) => prev.filter((item) => item.account_no !== loanToDelete));
-      toast.success(`${loanType} loan record deleted successfully`);
+      try {
+        await deleteLoanMutation.mutateAsync(loanToDelete);
+        toast.success(`${loanType} loan record deleted successfully`);
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete loan record');
+      }
+      setDataList((prev) => prev.filter((item) => item.account_no !== loanToDelete && item.id !== loanToDelete));
       setLoanToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -488,7 +541,7 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
     toast.info(`Exporting ${loanType} Loans to Excel...`);
   };
 
-  const selectedLoanData = dataList.find((item) => item.account_no === selectedLoanId) || null;
+  const selectedLoanData = currentLoans.find((item: any) => item.account_no === selectedLoanId || item.id === selectedLoanId) || null;
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -530,7 +583,7 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
         columns={columns}
         data={paginatedData}
         title={`${loanType} Loans Management`}
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={setSearchInput}
         onSearch={() => setSearchQuery(searchInput)}
         onClearSearch={() => {
@@ -541,7 +594,7 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
         paginationPerPage={10}
         actions={tableActions}
         onExport={handleExport}
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

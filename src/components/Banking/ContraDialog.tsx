@@ -20,6 +20,7 @@ import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 import { toast } from 'react-toastify';
 import { useGetMemberBasicInfo, useGetMemberAccountsPublic } from '../../queries/transfer';
 import TokenService from '../../queries/token/tokenService';
+import { useCreateContra, useUpdateContra } from '../../queries/banking';
 
 interface ContraDialogProps {
     open: boolean;
@@ -120,6 +121,9 @@ const ContraDialog: React.FC<ContraDialogProps> = ({ open, onClose, contraId, in
         setFetchMemberInfo(true);
     };
 
+    const createContraMutation = useCreateContra();
+    const updateContraMutation = useUpdateContra();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setFormError(null);
@@ -143,10 +147,13 @@ const ContraDialog: React.FC<ContraDialogProps> = ({ open, onClose, contraId, in
                 id: contraId || `CNT-${Date.now().toString().slice(-6)}`,
                 contra_id: initialData?.contra_id || `CNT-${Date.now().toString().slice(-6)}`,
                 date: formData.contra_date,
+                debit_from: formData.contra_to,
+                credit_to: formData.selected_account || 'Bank',
                 contra_to: formData.contra_to,
                 member_id: formData.member_id || undefined,
                 account_no: formData.selected_account || undefined,
                 description: formData.contra_details,
+                particulars: formData.contra_details,
                 amount: parseFloat(formData.amount),
                 mode_of_contra: formData.mode_of_contra,
                 status: 'active',
@@ -154,13 +161,20 @@ const ContraDialog: React.FC<ContraDialogProps> = ({ open, onClose, contraId, in
                 entered_by: formData.entered_by,
             };
 
+            if (contraId) {
+                await updateContraMutation.mutateAsync({ contraId: initialData?.contra_id || contraId, data: payload });
+                toast.success('Contra entry updated successfully');
+            } else {
+                await createContraMutation.mutateAsync(payload);
+                toast.success('Contra entry created successfully');
+            }
+
             if (onSave) {
                 onSave(payload);
             }
-            toast.success(contraId ? 'Contra entry updated successfully' : 'Contra entry created successfully');
             onClose();
         } catch (error: any) {
-            toast.error(error?.message || 'Operation failed');
+            toast.error(error?.response?.data?.message || error?.message || 'Operation failed');
         } finally {
             setSubmitting(false);
         }

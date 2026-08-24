@@ -25,6 +25,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AdminReusableTable from '../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetBranches, useDeleteBranch } from '../../queries/banking';
 import BranchDialog, { BranchFormData } from '../../components/Administration/BranchDialog';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 
@@ -123,25 +124,37 @@ const Branches: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [branchToView, setBranchToView] = useState<BranchFormData | null>(null);
 
+  const { data: branchesData, isLoading } = useGetBranches(page, 10, searchQuery);
+  const deleteBranchMutation = useDeleteBranch();
+
+  // Combine API data with fallback
+  const currentBranches = (branchesData?.data && branchesData.data.length > 0)
+    ? branchesData.data
+    : dataList;
+
   // Search filter
-  const filteredData = dataList.filter((item) => {
+  const filteredData = currentBranches.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.branch_id.toLowerCase().includes(q) ||
-      item.branch_name.toLowerCase().includes(q) ||
-      item.section_id.toLowerCase().includes(q) ||
-      item.branch_ledger_acc.toLowerCase().includes(q) ||
-      item.address3.toLowerCase().includes(q) ||
-      item.mobile_no.toLowerCase().includes(q) ||
-      item.email.toLowerCase().includes(q)
+      (item.branch_id && item.branch_id.toLowerCase().includes(q)) ||
+      (item.branch_name && item.branch_name.toLowerCase().includes(q)) ||
+      (item.section_id && item.section_id.toLowerCase().includes(q)) ||
+      (item.branch_ledger_acc && item.branch_ledger_acc.toLowerCase().includes(q)) ||
+      (item.address3 && item.address3.toLowerCase().includes(q)) ||
+      (item.mobile_no && item.mobile_no.toLowerCase().includes(q)) ||
+      (item.email && item.email.toLowerCase().includes(q))
     );
   });
 
-  const paginatedData = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = branchesData?.pagination?.total || filteredData.length;
+
+  const paginatedData = (branchesData?.data && branchesData.data.length > 0)
+    ? branchesData.data.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -370,10 +383,15 @@ const Branches: React.FC = () => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (branchToDelete) {
+      try {
+        await deleteBranchMutation.mutateAsync(branchToDelete);
+        toast.success('Branch deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete branch');
+      }
       setDataList((prev) => prev.filter((item) => item.branch_id !== branchToDelete));
-      toast.success('Branch deleted successfully');
       setBranchToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -398,7 +416,7 @@ const Branches: React.FC = () => {
     toast.info('Exporting Branch data to Excel...');
   };
 
-  const selectedBranchData = dataList.find((item) => item.branch_id === selectedBranchId) || null;
+  const selectedBranchData = currentBranches.find((item: any) => item.branch_id === selectedBranchId) || null;
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -416,7 +434,7 @@ const Branches: React.FC = () => {
           '&:hover': { backgroundColor: '#059669' },
         }}
       >
-        Add Branch
+        New Branch
       </Button>
     </Stack>
   );
@@ -439,7 +457,7 @@ const Branches: React.FC = () => {
         columns={columns}
         data={paginatedData}
         title="Branch Management"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={handleSearchChange}
         onSearch={handleSearch}
         onClearSearch={handleClearSearch}
@@ -448,7 +466,7 @@ const Branches: React.FC = () => {
         actions={tableActions}
         onExport={handleExport}
         emptyMessage="No branches found"
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

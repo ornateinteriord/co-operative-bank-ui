@@ -20,6 +20,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useReactToPrint } from 'react-to-print';
 import AdminReusableTable from '../../../utils/AdminReusableTable';
 import { toast } from 'react-toastify';
+import { useGetContras, useDeleteContra } from '../../../queries/banking';
 import ContraDialog from '../../../components/Banking/ContraDialog';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
 import ContraPrint from '../../../components/Print-components/Contra/contra';
@@ -96,24 +97,46 @@ const Contra: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
   const tablePrintRef = useRef<HTMLDivElement>(null);
 
+  const { data: contrasData, isLoading } = useGetContras(page, 10, searchQuery);
+  const deleteContraMutation = useDeleteContra();
+
+  const currentContras = (contrasData?.data && contrasData.data.length > 0)
+    ? contrasData.data.map((c: any) => ({
+        id: c._id || c.contra_id,
+        contra_id: c.contra_id || c.contra_no,
+        date: c.date ? new Date(c.date).toISOString().split('T')[0] : '',
+        contra_to: c.debit_from || c.contra_to || '-',
+        description: c.particulars || c.description || c.narration || '-',
+        mode_of_contra: c.mode_of_contra || 'Cash',
+        amount: c.amount || 0,
+        status: c.status || 'active',
+        member_id: c.member_id,
+        account_no: c.account_no,
+      }))
+    : dataList;
+
   // Filtered data based on search query
-  const filteredData = dataList.filter(item => {
+  const filteredData = currentContras.filter((item: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      item.contra_id.toLowerCase().includes(q) ||
-      item.contra_to.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
+      (item.contra_id && item.contra_id.toLowerCase().includes(q)) ||
+      (item.contra_to && item.contra_to.toLowerCase().includes(q)) ||
+      (item.description && item.description.toLowerCase().includes(q)) ||
       (item.member_id && item.member_id.toLowerCase().includes(q)) ||
       (item.account_no && item.account_no.toLowerCase().includes(q)) ||
-      item.mode_of_contra.toLowerCase().includes(q)
+      (item.mode_of_contra && item.mode_of_contra.toLowerCase().includes(q))
     );
   });
 
-  const contras: Contra[] = filteredData.slice((page - 1) * 10, page * 10).map((item, index) => ({
-    ...item,
-    rowNumber: (page - 1) * 10 + index + 1,
-  }));
+  const totalCount = contrasData?.pagination?.total || filteredData.length;
+
+  const contras: Contra[] = (contrasData?.data && contrasData.data.length > 0)
+    ? currentContras.map((item: any, index: number) => ({ ...item, rowNumber: (page - 1) * 10 + index + 1 }))
+    : filteredData.slice((page - 1) * 10, page * 10).map((item: any, index: number) => ({
+        ...item,
+        rowNumber: (page - 1) * 10 + index + 1,
+      }));
 
   const columns = [
     {
@@ -348,10 +371,15 @@ const Contra: React.FC = () => {
     setConfirmDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (contraToDelete) {
+      try {
+        await deleteContraMutation.mutateAsync(contraToDelete);
+        toast.success('Contra voucher deleted successfully');
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || error?.message || 'Failed to delete contra voucher');
+      }
       setDataList(prev => prev.filter(item => item.contra_id !== contraToDelete));
-      toast.success('Contra voucher deleted successfully');
       setContraToDelete(null);
       setConfirmDialogOpen(false);
     }
@@ -382,7 +410,7 @@ const Contra: React.FC = () => {
     toast.info('Exporting Contra entries to Excel...');
   };
 
-  const selectedContraData = dataList.find(item => item.contra_id === selectedContraId);
+  const selectedContraData = currentContras.find((item: any) => item.contra_id === selectedContraId);
 
   const tableActions = (
     <Stack direction="row" spacing={1}>
@@ -428,7 +456,7 @@ const Contra: React.FC = () => {
         columns={columns}
         data={contras}
         title="Contra Management"
-        isLoading={false}
+        isLoading={isLoading}
         onSearchChange={handleSearchChange}
         onSearch={handleSearch}
         onClearSearch={handleClearSearch}
@@ -437,7 +465,7 @@ const Contra: React.FC = () => {
         actions={tableActions}
         onExport={handleExport}
         emptyMessage="No contra vouchers found"
-        totalCount={filteredData.length}
+        totalCount={totalCount}
         currentPage={page - 1}
         onPageChange={(newPage) => setPage(newPage + 1)}
       />

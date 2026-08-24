@@ -23,6 +23,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import PaidIcon from '@mui/icons-material/Paid';
 import { toast } from 'react-toastify';
+import { useCreatePayDemand, useUpdatePayDemand } from '../../queries/banking';
 
 export interface PayDemandFormData {
   id?: string;
@@ -111,6 +112,9 @@ const PayDemandDialog: React.FC<PayDemandDialogProps> = ({
     setFormError(null);
   };
 
+  const createDemandMutation = useCreatePayDemand();
+  const updateDemandMutation = useUpdatePayDemand();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -123,11 +127,18 @@ const PayDemandDialog: React.FC<PayDemandDialogProps> = ({
         demand_no: formData.demand_no || `DEM-${Date.now().toString().slice(-5)}`,
       };
 
+      if (demandId) {
+        await updateDemandMutation.mutateAsync({ demandId: formData.demand_no || demandId, data: payload });
+        toast.success('Pay demand updated successfully');
+      } else {
+        await createDemandMutation.mutateAsync(payload);
+        toast.success('Pay demand created successfully');
+      }
+
       onSave(payload);
-      toast.success(demandId ? 'Pay demand updated successfully' : 'Pay demand created successfully');
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to save demand');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save demand');
     } finally {
       setSubmitting(false);
     }
