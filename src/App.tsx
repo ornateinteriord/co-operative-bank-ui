@@ -125,6 +125,18 @@ const LoanMasterPage = lazy(() => import("./pages/Admin-Pages/Loan/LoanMasterPag
 const AgentAssignment = lazy(() => import("./pages/Admin-Pages/AgentAssignment/AgentAssignment"));
 const AdminWithdrawalRequests = lazy(() => import("./pages/Admin-Pages/Withdrawal/WithdrawalRequests"));
 
+import {
+  PersonalLoanOpening, PersonalLoanViewAll, PersonalLoanClose,
+  MortgageLoanOpening, MortgageLoanViewAll, MortgageLoanClose,
+  GoldLoanOpening, GoldLoanViewAll, GoldLoanClose,
+  BusinessLoanOpening, BusinessLoanViewAll, BusinessLoanClose,
+  VehicleLoanOpening, VehicleLoanViewAll, VehicleLoanClose,
+  EducationLoanOpening, EducationLoanViewAll, EducationLoanClose,
+  AgricultureLoanOpening, AgricultureLoanViewAll, AgricultureLoanClose,
+  PigmiLoanOpening, PigmiLoanViewAll, PigmiLoanClose,
+  PigmiGoldLoanOpening, PigmiGoldLoanViewAll, PigmiGoldLoanClose,
+} from "./pages/Admin-Pages/Loan";
+
 const SBOpening = lazy(() => import("./pages/Admin-Pages/AccountForm/SBOpening"));
 const CAOpening = lazy(() => import("./pages/Admin-Pages/AccountForm/CAOpening"));
 const SBDetails = lazy(() => import("./pages/Admin-Pages/AccountDetails/SBDetails"));
@@ -494,12 +506,61 @@ const RoutesProvider = ({
               <Route path="/banking/mis-calculator" element={<DepositCalculator type="MIS" />} />
 
               {/* Loan Master Routes */}
+              {/* 1. Personal Loan */}
+              <Route path="/loan/personal-opening" element={<PersonalLoanOpening />} />
+              <Route path="/loan/personal-viewall" element={<PersonalLoanViewAll />} />
+              <Route path="/loan/personal-close" element={<PersonalLoanClose />} />
+
+              {/* 2. Mortgage Loan */}
+              <Route path="/loan/mortgage-opening" element={<MortgageLoanOpening />} />
+              <Route path="/loan/mortgage-viewall" element={<MortgageLoanViewAll />} />
+              <Route path="/loan/mortgage-close" element={<MortgageLoanClose />} />
+
+              {/* 3. Gold Loan */}
+              <Route path="/loan/gold-opening" element={<GoldLoanOpening />} />
+              <Route path="/loan/gold-viewall" element={<GoldLoanViewAll />} />
+              <Route path="/loan/gold-close" element={<GoldLoanClose />} />
+
+              {/* 4. Business Loan */}
+              <Route path="/loan/business-opening" element={<BusinessLoanOpening />} />
+              <Route path="/loan/business-viewall" element={<BusinessLoanViewAll />} />
+              <Route path="/loan/business-close" element={<BusinessLoanClose />} />
+
+              {/* 5. Vehicle Loan */}
+              <Route path="/loan/vehicle-opening" element={<VehicleLoanOpening />} />
+              <Route path="/loan/vehicle-viewall" element={<VehicleLoanViewAll />} />
+              <Route path="/loan/vehicle-close" element={<VehicleLoanClose />} />
+
+              {/* 6. Education Loan */}
+              <Route path="/loan/education-opening" element={<EducationLoanOpening />} />
+              <Route path="/loan/education-viewall" element={<EducationLoanViewAll />} />
+              <Route path="/loan/education-close" element={<EducationLoanClose />} />
+
+              {/* 7. Agriculture Loan */}
+              <Route path="/loan/agriculture-opening" element={<AgricultureLoanOpening />} />
+              <Route path="/loan/agriculture-viewall" element={<AgricultureLoanViewAll />} />
+              <Route path="/loan/agriculture-close" element={<AgricultureLoanClose />} />
+
+              {/* 8. Pigmi Loan */}
+              <Route path="/loan/pigmi-opening" element={<PigmiLoanOpening />} />
+              <Route path="/loan/pigmi-viewall" element={<PigmiLoanViewAll />} />
+              <Route path="/loan/pigmi-close" element={<PigmiLoanClose />} />
+
+              {/* 9. Pigmi Gold Loan */}
+              <Route path="/loan/pigmi-gold-opening" element={<PigmiGoldLoanOpening />} />
+              <Route path="/loan/pigmi-gold-viewall" element={<PigmiGoldLoanViewAll />} />
+              <Route path="/loan/pigmi-gold-close" element={<PigmiGoldLoanClose />} />
+
+              {/* Legacy Loan Master Routes */}
               <Route path="/admin/loans/personal" element={<LoanMasterPage loanType="Personal" />} />
               <Route path="/admin/loans/mortgage" element={<LoanMasterPage loanType="Mortgage" />} />
               <Route path="/admin/loans/gold" element={<LoanMasterPage loanType="Gold" />} />
               <Route path="/admin/loans/business" element={<LoanMasterPage loanType="Business" />} />
-              <Route path="/admin/loans/house" element={<LoanMasterPage loanType="House" />} />
-              <Route path="/admin/loans/other" element={<LoanMasterPage loanType="Other" />} />
+              <Route path="/admin/loans/vehicle" element={<LoanMasterPage loanType="Vehicle" />} />
+              <Route path="/admin/loans/education" element={<LoanMasterPage loanType="Education" />} />
+              <Route path="/admin/loans/agriculture" element={<LoanMasterPage loanType="Agriculture" />} />
+              <Route path="/admin/loans/pigmi" element={<LoanMasterPage loanType="Pigmi" />} />
+              <Route path="/admin/loans/pigmi-gold" element={<LoanMasterPage loanType="Pigmi Gold" />} />
 
               {/* DD Creations */}
               <Route path="/admin_01/dd-creations" element={<AdminDDCreations />} />

@@ -100,6 +100,69 @@ const ACCOUNT_THEMES: Record<string, AccountTheme> = {
     light: '#99f6e4',
     gradient: 'linear-gradient(135deg, #006064 0%, #0097a7 100%)',
     shadow: '0 4px 14px 0 rgba(0, 96, 100, 0.25)'
+  },
+  'PERSONAL LOAN': {
+    primary: '#1e40af',
+    secondary: '#1d4ed8',
+    light: '#dbeafe',
+    gradient: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+    shadow: '0 4px 14px 0 rgba(30, 64, 175, 0.25)'
+  },
+  'MORTGAGE LOAN': {
+    primary: '#334155',
+    secondary: '#475569',
+    light: '#e2e8f0',
+    gradient: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+    shadow: '0 4px 14px 0 rgba(51, 65, 85, 0.25)'
+  },
+  'GOLD LOAN': {
+    primary: '#b45309',
+    secondary: '#d97706',
+    light: '#fef3c7',
+    gradient: 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
+    shadow: '0 4px 14px 0 rgba(180, 83, 9, 0.25)'
+  },
+  'BUSINESS LOAN': {
+    primary: '#0f766e',
+    secondary: '#0d9488',
+    light: '#ccfbf1',
+    gradient: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
+    shadow: '0 4px 14px 0 rgba(15, 118, 110, 0.25)'
+  },
+  'VEHICLE LOAN': {
+    primary: '#0369a1',
+    secondary: '#0284c7',
+    light: '#e0f2fe',
+    gradient: 'linear-gradient(135deg, #0369a1 0%, #38bdf8 100%)',
+    shadow: '0 4px 14px 0 rgba(3, 105, 161, 0.25)'
+  },
+  'EDUCATION LOAN': {
+    primary: '#6b21a8',
+    secondary: '#7e22ce',
+    light: '#f3e8ff',
+    gradient: 'linear-gradient(135deg, #6b21a8 0%, #a855f7 100%)',
+    shadow: '0 4px 14px 0 rgba(107, 33, 168, 0.25)'
+  },
+  'AGRICULTURE LOAN': {
+    primary: '#15803d',
+    secondary: '#16a34a',
+    light: '#dcfce7',
+    gradient: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+    shadow: '0 4px 14px 0 rgba(21, 128, 61, 0.25)'
+  },
+  'PIGMI LOAN': {
+    primary: '#c2410c',
+    secondary: '#ea580c',
+    light: '#ffedd5',
+    gradient: 'linear-gradient(135deg, #c2410c 0%, #f97316 100%)',
+    shadow: '0 4px 14px 0 rgba(194, 65, 12, 0.25)'
+  },
+  'PIGMI GOLD LOAN': {
+    primary: '#a16207',
+    secondary: '#ca8a04',
+    light: '#fef9c3',
+    gradient: 'linear-gradient(135deg, #a16207 0%, #eab308 100%)',
+    shadow: '0 4px 14px 0 rgba(161, 98, 7, 0.25)'
   }
 };
 
@@ -172,7 +235,7 @@ const AccountOpeningForm: React.FC<Props> = ({
 
   // Dynamically update body class for the entire page
   useEffect(() => {
-    const type = (defaultAccountType || 'SB').toLowerCase();
+    const type = (defaultAccountType || 'SB').toLowerCase().replace(/\s+/g, '-');
     const className = `theme-${type}`;
     document.body.classList.add(className);
     return () => {
@@ -203,7 +266,7 @@ const AccountOpeningForm: React.FC<Props> = ({
   }, [memberId, prefillMemberId, memberInfo]);
 
   const [form, setForm] = useState<any>({
-    accountType: defaultAccountType?.toUpperCase() || 'SB',
+    accountType: defaultAccountType || 'SB',
     accountOperation: 'Single',
     openingDate: new Date().toISOString().split('T')[0],
     amount: '',
@@ -219,10 +282,34 @@ const AccountOpeningForm: React.FC<Props> = ({
     jointMember: '',
   });
 
+  const isLoanPage = React.useMemo(() => {
+    const currentTypeUpper = (form?.accountType || defaultAccountType || '').toUpperCase();
+    return [
+      'PERSONAL LOAN', 'MORTGAGE LOAN', 'GOLD LOAN', 'BUSINESS LOAN',
+      'VEHICLE LOAN', 'EDUCATION LOAN', 'AGRICULTURE LOAN', 'PIGMI LOAN',
+      'PIGMI GOLD LOAN'
+    ].includes(currentTypeUpper) || currentTypeUpper.includes('LOAN') || currentTypeUpper.includes('OVERDRAFT');
+  }, [form?.accountType, defaultAccountType]);
+
   // Fetch account groups (Admin or Member)
   const adminAccountGroups = AdminQueries.useGetAccountGroups(undefined, !isUser);
   const memberAccountGroups = MemberQueries.useGetMemberAccountGroups(isUser);
   const accountGroupsData = isUser ? memberAccountGroups.data : adminAccountGroups.data;
+
+  // Filter groups depending on whether it's a loan page or deposit/savings page
+  const filteredAccountGroups = React.useMemo(() => {
+    if (!accountGroupsData?.data) return [];
+    return accountGroupsData.data.filter((grp: any) => {
+      const nameUpper = (grp.account_group_name || '').toUpperCase();
+      const isGrpLoan = nameUpper.includes('LOAN') || nameUpper.includes('OVERDRAFT') || grp.account_book_id === 'ABK026';
+      if (isLoanPage) {
+        if (nameUpper === 'PIGMI SAVING' || nameUpper === 'PIGMY SAVING') return false;
+        return isGrpLoan;
+      } else {
+        return !isGrpLoan;
+      }
+    });
+  }, [accountGroupsData, isLoanPage]);
 
   // Fetch all agents for dropdown (Admin only)
   const { data: agentsData } = AdminQueries.useGetAllAgents(!isUser); // We'll ignore this for users
@@ -275,10 +362,10 @@ const AccountOpeningForm: React.FC<Props> = ({
   // Map account type name to account_group_id
   useEffect(() => {
     if (accountGroupsData?.data) {
-      const search = defaultAccountType?.toUpperCase() || '';
+      const search = (form.accountType || defaultAccountType || '').toUpperCase();
       const matchingGroup = accountGroupsData.data.find((group: any) => {
-        const name = group.account_group_name?.toUpperCase() || '';
-        const id = group.account_group_id?.toUpperCase() || '';
+        const name = (group.account_group_name || '').toUpperCase();
+        const id = (group.account_group_id || '').toUpperCase();
 
         // 1. Try exact match first (Highest Priority)
         if (name === search || id === search) return true;
@@ -286,6 +373,33 @@ const AccountOpeningForm: React.FC<Props> = ({
         // 2. Try specific keyword matches for certain types
         if (search === 'SB') {
           return name === 'SAVING' || name === 'SAVINGS' || name === 'SAVINGS ACCOUNT' || name === 'SAVINGS BANK';
+        }
+        if (search === 'PERSONAL LOAN' || search === 'PERSONAL' || search === 'PL') {
+          return name.includes('PERSONAL') && name.includes('LOAN');
+        }
+        if (search === 'MORTGAGE LOAN' || search === 'MORTGAGE' || search === 'ML') {
+          return name.includes('MORTGAGE');
+        }
+        if (search === 'GOLD LOAN' || search === 'GOLD' || search === 'GL') {
+          return name.includes('GOLD') && !name.includes('PIGMI') && !name.includes('PIGMY');
+        }
+        if (search === 'BUSINESS LOAN' || search === 'BUSINESS' || search === 'BL') {
+          return name.includes('BUSINESS');
+        }
+        if (search === 'VEHICLE LOAN' || search === 'VEHICLE' || search === 'VL') {
+          return name.includes('VEHICLE');
+        }
+        if (search === 'EDUCATION LOAN' || search === 'EDUCATION' || search === 'EL') {
+          return name.includes('EDUCATION');
+        }
+        if (search === 'AGRICULTURE LOAN' || search === 'AGRICULTURE' || search === 'AGRI' || search === 'AL') {
+          return name.includes('AGRICULTURE') || name.includes('AGRI');
+        }
+        if (search === 'PIGMI LOAN' || search === 'PIGMY LOAN' || search === 'PGL') {
+          return (name.includes('PIGMI') || name.includes('PIGMY')) && name.includes('LOAN') && !name.includes('GOLD');
+        }
+        if (search === 'PIGMI GOLD LOAN' || search === 'PIGMY GOLD LOAN' || search === 'PGLD') {
+          return (name.includes('PIGMI') || name.includes('PIGMY')) && name.includes('GOLD');
         }
 
         return name.startsWith(search) ||
@@ -300,11 +414,14 @@ const AccountOpeningForm: React.FC<Props> = ({
       if (matchingGroup) {
         console.log('Found matching group:', matchingGroup);
         setAccountGroupId(matchingGroup.account_group_id || matchingGroup._id);
+        if (form.accountType !== matchingGroup.account_group_name) {
+          setForm((prev: any) => ({ ...prev, accountType: matchingGroup.account_group_name }));
+        }
       } else {
-        console.log('No matching group found for:', defaultAccountType);
+        console.log('No matching group found for:', search);
       }
     }
-  }, [accountGroupsData, defaultAccountType]);
+  }, [accountGroupsData, defaultAccountType, form.accountType]);
 
   // Auto-populate introducer name when agent data is fetched
   useEffect(() => {
@@ -548,8 +665,17 @@ const AccountOpeningForm: React.FC<Props> = ({
     }
   };
 
-  const showInterestFields = ['RD', 'FD', 'PIGMY', 'MIS'].includes(form.accountType);
-  const interests = interestsData?.data || [];
+  const currentAccType = (form.accountType || defaultAccountType || '').toUpperCase();
+  const isLoanType = [
+    'PERSONAL LOAN', 'MORTGAGE LOAN', 'GOLD LOAN', 'BUSINESS LOAN',
+    'VEHICLE LOAN', 'EDUCATION LOAN', 'AGRICULTURE LOAN', 'PIGMI LOAN',
+    'PIGMI GOLD LOAN'
+  ].includes(currentAccType) || currentAccType.includes('LOAN');
+
+  const showInterestFields = ['RD', 'FD', 'PIGMY', 'MIS'].includes(currentAccType) || isLoanType;
+  const interests = [...(interestsData?.data || [])].sort(
+    (a: any, b: any) => (a.duration || 0) - (b.duration || 0)
+  );
 
   return (
     <Box sx={{
@@ -569,7 +695,7 @@ const AccountOpeningForm: React.FC<Props> = ({
           fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
         }}
       >
-        {title ?? `${form.accountType} Account Opening`}
+        {title ?? `${form.accountType || defaultAccountType} Account Opening`}
       </Typography>
       <Card sx={{
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
@@ -638,7 +764,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     <>
                       <Grid item xs={12}>
                         <TextField
-                          label="Member Name"
+                          label="Customer Name"
                           fullWidth
                           size="small"
                           value={memberInfo.name || memberInfo.Name || ''}
@@ -646,42 +772,42 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Gender"
+                          label="Father / Husband Name"
                           fullWidth
                           size="small"
-                          value={memberInfo.gender || ''}
+                          value={memberInfo.father_name || memberInfo.Father_name || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Date Of Birth"
+                          label="Mother Name"
                           fullWidth
                           size="small"
-                          value={memberInfo.dob ? new Date(memberInfo.dob).toLocaleDateString('en-GB') : ''}
+                          value={memberInfo.mother_name || memberInfo.Mother_name || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Email ID"
+                          label="Age"
                           fullWidth
                           size="small"
-                          value={memberInfo.emailid || memberInfo.email || ''}
+                          value={memberInfo.age || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Contact No"
+                          label="DOB"
                           fullWidth
                           size="small"
-                          value={memberInfo.contactno || memberInfo.mobileno || ''}
+                          value={memberInfo.dob || memberInfo.Dob || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
@@ -690,30 +816,50 @@ const AccountOpeningForm: React.FC<Props> = ({
                         <TextField
                           label="Address"
                           fullWidth
-                          size="small"
                           multiline
                           rows={2}
-                          value={memberInfo.address || ''}
+                          size="small"
+                          value={memberInfo.address || memberInfo.Address || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Pan No"
+                          label="Mobile No"
                           fullWidth
                           size="small"
-                          value={memberInfo.pan_no || memberInfo.Pan_no || ''}
+                          value={memberInfo.contactno || memberInfo.mobileno || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} md={6}>
                         <TextField
-                          label="Aadharcard No"
+                          label="PAN Card"
                           fullWidth
                           size="small"
-                          value={memberInfo.aadharcard_no || ''}
+                          value={memberInfo.panno || memberInfo.Pancard || ''}
+                          InputProps={{ readOnly: true }}
+                          sx={readOnlyInputStyle}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Aadhar Card"
+                          fullWidth
+                          size="small"
+                          value={memberInfo.aadharno || memberInfo.Aadharcard || ''}
+                          InputProps={{ readOnly: true }}
+                          sx={readOnlyInputStyle}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Occupation"
+                          fullWidth
+                          size="small"
+                          value={memberInfo.occupation || memberInfo.Occupation || ''}
                           InputProps={{ readOnly: true }}
                           sx={readOnlyInputStyle}
                         />
@@ -785,7 +931,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                       <Select
                         labelId="account-type-label"
                         label="Account Type"
-                        value={form.accountType || defaultAccountType?.toUpperCase() || ''}
+                        value={form.accountType || defaultAccountType || ''}
                         onChange={(e) => {
                           if (!isUser) handleChange('accountType', e.target.value);
                           else navigate(`/user/account-opening/${e.target.value.toLowerCase()}`);
@@ -794,18 +940,40 @@ const AccountOpeningForm: React.FC<Props> = ({
                         inputProps={{ readOnly: isUser }}
                       >
                         {isUser ? (
-                          <MenuItem value={defaultAccountType?.toUpperCase()}>
-                            {defaultAccountType?.toUpperCase()}
+                          <MenuItem value={form.accountType || defaultAccountType?.toUpperCase()}>
+                            {form.accountType || defaultAccountType?.toUpperCase()}
                           </MenuItem>
                         ) : (
-                          <>
-                            <MenuItem value="SB">SB</MenuItem>
-                            <MenuItem value="CA">CA</MenuItem>
-                            <MenuItem value="RD">RD</MenuItem>
-                            <MenuItem value="FD">FD</MenuItem>
-                            <MenuItem value="PIGMY">PIGMY</MenuItem>
-                            <MenuItem value="MIS">MIS</MenuItem>
-                          </>
+                          filteredAccountGroups?.length ? (
+                            filteredAccountGroups.map((grp: any) => (
+                              <MenuItem key={grp.account_group_id || grp._id} value={grp.account_group_name || grp.account_group_id}>
+                                {grp.account_group_name}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            isLoanPage ? (
+                              <>
+                                <MenuItem value="Personal Loan">Personal Loan</MenuItem>
+                                <MenuItem value="Mortgage Loan">Mortgage Loan</MenuItem>
+                                <MenuItem value="Gold Loan">Gold Loan</MenuItem>
+                                <MenuItem value="Business Loan">Business Loan</MenuItem>
+                                <MenuItem value="Vehicle Loan">Vehicle Loan</MenuItem>
+                                <MenuItem value="Education Loan">Education Loan</MenuItem>
+                                <MenuItem value="Agriculture Loan">Agriculture Loan</MenuItem>
+                                <MenuItem value="Pigmi Loan">Pigmi Loan</MenuItem>
+                                <MenuItem value="Pigmi Gold Loan">Pigmi Gold Loan</MenuItem>
+                              </>
+                            ) : (
+                              <>
+                                <MenuItem value="SB">SB</MenuItem>
+                                <MenuItem value="CA">CA</MenuItem>
+                                <MenuItem value="RD">RD</MenuItem>
+                                <MenuItem value="FD">FD</MenuItem>
+                                <MenuItem value="PIGMY">PIGMY</MenuItem>
+                                <MenuItem value="MIS">MIS</MenuItem>
+                              </>
+                            )
+                          )
                         )}
                       </Select>
                     </FormControl>
@@ -869,7 +1037,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                             onChange={(e) => handleInterestSlabChange(e.target.value)}
                             disabled={loadingInterests || interests.length === 0}
                           >
-                            <MenuItem value="">Select Interest Slab</MenuItem>
+                            <MenuItem value="">{interests.length === 0 ? 'No Slabs Configured (Manual Rate)' : 'Select Interest Slab'}</MenuItem>
                             {interests.map((interest: any) => (
                               <MenuItem key={interest.interest_id || interest._id} value={interest.interest_id || interest._id}>
                                 {interest.interest_name || `${interest.duration} Months`} - Gen: {interest.interest_rate_general ?? interest.interest_rate ?? 0}% | Sr: {interest.interest_rate_senior ?? '-'}%
@@ -881,23 +1049,25 @@ const AccountOpeningForm: React.FC<Props> = ({
 
                       <Grid item xs={12} md={6}>
                         <TextField
-                          label="Interest Rate (General)"
+                          label="Interest Rate (%)"
                           fullWidth
                           size="small"
                           value={form.interestRate}
-                          InputProps={{ readOnly: true }}
-                          sx={readOnlyInputStyle}
+                          onChange={(e) => handleChange('interestRate', e.target.value)}
+                          InputProps={{ readOnly: isUser || (interests.length > 0 && !!form.interestSlab) }}
+                          sx={isUser || (interests.length > 0 && !!form.interestSlab) ? readOnlyInputStyle : accountInputStyle}
                         />
                       </Grid>
 
                       <Grid item xs={12} md={6}>
                         <TextField
-                          label="Duration"
+                          label="Duration (Months)"
                           fullWidth
                           size="small"
                           value={form.duration}
-                          InputProps={{ readOnly: true }}
-                          sx={readOnlyInputStyle}
+                          onChange={(e) => handleChange('duration', e.target.value)}
+                          InputProps={{ readOnly: isUser || (interests.length > 0 && !!form.interestSlab) }}
+                          sx={isUser || (interests.length > 0 && !!form.interestSlab) ? readOnlyInputStyle : accountInputStyle}
                         />
                       </Grid>
                     </>

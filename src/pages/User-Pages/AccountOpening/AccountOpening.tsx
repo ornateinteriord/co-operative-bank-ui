@@ -126,7 +126,7 @@ const UserAccountOpening = () => {
 
   // Dynamically update body class for the entire page
   useEffect(() => {
-    const className = `theme-${accountType.toLowerCase()}`;
+    const className = `theme-${accountType.toLowerCase().replace(/\s+/g, '-')}`;
     document.body.classList.add(className);
     return () => {
       document.body.classList.remove(className);
