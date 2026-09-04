@@ -36,7 +36,7 @@ import { useGetAccounts, useGetAccountGroups, type Account } from '../../queries
 import TransactionDialog from '../Dialogs/TransactionDialog';
 import TablePDF, { PrintColumn } from '../Print-components/TablePDF';
 
-export type AccountType = 'SB' | 'CA' | 'RD' | 'FD' | 'PIGMY' | 'MIS';
+export type AccountType = 'SB' | 'CA' | 'RD' | 'FD' | 'PIGMY' | 'MIS' | string;
 
 interface Props {
     accountType: AccountType;
@@ -91,15 +91,87 @@ const ACCOUNT_THEMES: Record<string, any> = {
         gradient: 'linear-gradient(135deg, #006064 0%, #0097a7 100%)',
         shadow: '0 4px 14px 0 rgba(0, 96, 100, 0.25)',
         chip: { backgroundColor: '#99f6e4', color: '#006064' }
+    },
+    'PERSONAL LOAN': {
+        primary: '#1e40af',
+        secondary: '#1d4ed8',
+        light: '#dbeafe',
+        gradient: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+        shadow: '0 4px 14px 0 rgba(30, 64, 175, 0.25)',
+        chip: { backgroundColor: '#dbeafe', color: '#1e40af' }
+    },
+    'MORTGAGE LOAN': {
+        primary: '#334155',
+        secondary: '#475569',
+        light: '#e2e8f0',
+        gradient: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+        shadow: '0 4px 14px 0 rgba(51, 65, 85, 0.25)',
+        chip: { backgroundColor: '#e2e8f0', color: '#334155' }
+    },
+    'GOLD LOAN': {
+        primary: '#b45309',
+        secondary: '#d97706',
+        light: '#fef3c7',
+        gradient: 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
+        shadow: '0 4px 14px 0 rgba(180, 83, 9, 0.25)',
+        chip: { backgroundColor: '#fef3c7', color: '#b45309' }
+    },
+    'BUSINESS LOAN': {
+        primary: '#0f766e',
+        secondary: '#0d9488',
+        light: '#ccfbf1',
+        gradient: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
+        shadow: '0 4px 14px 0 rgba(15, 118, 110, 0.25)',
+        chip: { backgroundColor: '#ccfbf1', color: '#0f766e' }
+    },
+    'VEHICLE LOAN': {
+        primary: '#0369a1',
+        secondary: '#0284c7',
+        light: '#e0f2fe',
+        gradient: 'linear-gradient(135deg, #0369a1 0%, #38bdf8 100%)',
+        shadow: '0 4px 14px 0 rgba(3, 105, 161, 0.25)',
+        chip: { backgroundColor: '#e0f2fe', color: '#0369a1' }
+    },
+    'EDUCATION LOAN': {
+        primary: '#6b21a8',
+        secondary: '#7e22ce',
+        light: '#f3e8ff',
+        gradient: 'linear-gradient(135deg, #6b21a8 0%, #a855f7 100%)',
+        shadow: '0 4px 14px 0 rgba(107, 33, 168, 0.25)',
+        chip: { backgroundColor: '#f3e8ff', color: '#6b21a8' }
+    },
+    'AGRICULTURE LOAN': {
+        primary: '#15803d',
+        secondary: '#16a34a',
+        light: '#dcfce7',
+        gradient: 'linear-gradient(135deg, #15803d 0%, #22c55e 100%)',
+        shadow: '0 4px 14px 0 rgba(21, 128, 61, 0.25)',
+        chip: { backgroundColor: '#dcfce7', color: '#15803d' }
+    },
+    'PIGMI LOAN': {
+        primary: '#c2410c',
+        secondary: '#ea580c',
+        light: '#ffedd5',
+        gradient: 'linear-gradient(135deg, #c2410c 0%, #f97316 100%)',
+        shadow: '0 4px 14px 0 rgba(194, 65, 12, 0.25)',
+        chip: { backgroundColor: '#ffedd5', color: '#c2410c' }
+    },
+    'PIGMI GOLD LOAN': {
+        primary: '#a16207',
+        secondary: '#ca8a04',
+        light: '#fef9c3',
+        gradient: 'linear-gradient(135deg, #a16207 0%, #eab308 100%)',
+        shadow: '0 4px 14px 0 rgba(161, 98, 7, 0.25)',
+        chip: { backgroundColor: '#fef9c3', color: '#a16207' }
     }
 };
 
 const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
-    const theme = ACCOUNT_THEMES[accountType] || ACCOUNT_THEMES.SB;
+    const theme = ACCOUNT_THEMES[accountType?.toUpperCase()] || ACCOUNT_THEMES.SB;
 
     // Dynamically update body class for the entire page
     useEffect(() => {
-        const type = (accountType || 'SB').toLowerCase();
+        const type = (accountType || 'SB').toLowerCase().replace(/\s+/g, '-');
         const className = `theme-${type}`;
         document.body.classList.add(className);
         return () => {
@@ -124,11 +196,55 @@ const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
     // Map account type to account_group_id
     useEffect(() => {
         if (accountGroupsData?.data) {
-            const matchingGroup = accountGroupsData.data.find(
-                (group: any) => group.account_group_name === accountType
-            );
+            const search = (accountType || '').toUpperCase();
+            const matchingGroup = accountGroupsData.data.find((group: any) => {
+                const name = (group.account_group_name || '').toUpperCase();
+                const id = (group.account_group_id || '').toUpperCase();
+
+                if (name === search || id === search) return true;
+
+                if (search === 'SB') {
+                    return name === 'SAVING' || name === 'SAVINGS' || name === 'SAVINGS ACCOUNT' || name === 'SAVINGS BANK';
+                }
+                if (search === 'PERSONAL LOAN' || search === 'PERSONAL' || search === 'PL') {
+                    return name.includes('PERSONAL') && name.includes('LOAN');
+                }
+                if (search === 'MORTGAGE LOAN' || search === 'MORTGAGE' || search === 'ML') {
+                    return name.includes('MORTGAGE');
+                }
+                if (search === 'GOLD LOAN' || search === 'GOLD' || search === 'GL') {
+                    return name.includes('GOLD') && !name.includes('PIGMI') && !name.includes('PIGMY');
+                }
+                if (search === 'BUSINESS LOAN' || search === 'BUSINESS' || search === 'BL') {
+                    return name.includes('BUSINESS');
+                }
+                if (search === 'VEHICLE LOAN' || search === 'VEHICLE' || search === 'VL') {
+                    return name.includes('VEHICLE');
+                }
+                if (search === 'EDUCATION LOAN' || search === 'EDUCATION' || search === 'EL') {
+                    return name.includes('EDUCATION');
+                }
+                if (search === 'AGRICULTURE LOAN' || search === 'AGRICULTURE' || search === 'AGRI' || search === 'AL') {
+                    return name.includes('AGRICULTURE') || name.includes('AGRI');
+                }
+                if (search === 'PIGMI LOAN' || search === 'PIGMY LOAN' || search === 'PGL') {
+                    return (name.includes('PIGMI') || name.includes('PIGMY')) && name.includes('LOAN') && !name.includes('GOLD');
+                }
+                if (search === 'PIGMI GOLD LOAN' || search === 'PIGMY GOLD LOAN' || search === 'PGLD') {
+                    return (name.includes('PIGMI') || name.includes('PIGMY')) && name.includes('GOLD');
+                }
+
+                return name.startsWith(search) ||
+                    (search === 'RD' && name.includes('RECURRING')) ||
+                    (search === 'FD' && name.includes('FIXED')) ||
+                    (search === 'CA' && name.includes('CURRENT')) ||
+                    (search === 'CUR' && name.includes('CURRENT')) ||
+                    (search === 'MIS' && name.includes('MONTHLY')) ||
+                    (search === 'PIGMY' && (name.includes('DAILY') || name === 'PIGMI'));
+            });
+
             if (matchingGroup) {
-                setAccountGroupId(matchingGroup.account_group_id);
+                setAccountGroupId(matchingGroup.account_group_id || matchingGroup._id);
             }
         }
     }, [accountGroupsData, accountType]);

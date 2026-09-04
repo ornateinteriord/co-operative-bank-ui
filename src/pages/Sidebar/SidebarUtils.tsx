@@ -462,12 +462,96 @@ export const Admin01SideBarMenuItems: SideBarMenuItemType[] = [
     icon: <LucideIcons.BadgePercent />,
     isExpandable: true,
     subItems: [
-      { name: "Personal", path: "/admin/loans/personal", icon: <PersonIcon /> },
-      { name: "Mortguage", path: "/admin/loans/mortgage", icon: <LucideIcons.Building2 /> },
-      { name: "Gold", path: "/admin/loans/gold", icon: <LucideIcons.Coins /> },
-      { name: "Business", path: "/admin/loans/business", icon: <LucideIcons.Briefcase /> },
-      { name: "House", path: "/admin/loans/house", icon: <LucideIcons.Home /> },
-      { name: "Other", path: "/admin/loans/other", icon: <LucideIcons.Layers /> },
+      {
+        name: "Personal Loan",
+        icon: <PersonIcon />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/personal-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/personal-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/personal-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Mortgage Loan",
+        icon: <LucideIcons.Building2 />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/mortgage-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/mortgage-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/mortgage-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Gold Loan",
+        icon: <LucideIcons.Coins />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/gold-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/gold-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/gold-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Business Loan",
+        icon: <LucideIcons.Briefcase />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/business-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/business-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/business-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Vehicle Loan",
+        icon: <LucideIcons.Car />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/vehicle-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/vehicle-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/vehicle-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Education Loan",
+        icon: <LucideIcons.GraduationCap />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/education-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/education-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/education-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Agriculture Loan",
+        icon: <LucideIcons.Sprout />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/agriculture-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/agriculture-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/agriculture-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Pigmi Loan",
+        icon: <LucideIcons.PiggyBank />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/pigmi-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/pigmi-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/pigmi-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
+      {
+        name: "Pigmi Gold Loan",
+        icon: <LucideIcons.Coins />,
+        isExpandable: true,
+        subItems: [
+          { name: "Account Opening", path: "/loan/pigmi-gold-opening", icon: <LucideIcons.PlusCircle /> },
+          { name: "ViewAll / Search", path: "/loan/pigmi-gold-viewall", icon: <LucideIcons.Search /> },
+          { name: "Close Loan", path: "/loan/pigmi-gold-close", icon: <LucideIcons.XCircle /> },
+        ],
+      },
     ],
   },
   {

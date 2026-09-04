@@ -161,6 +161,141 @@ const initialLoanDataset: Record<LoanTypeCategory, LoanFormData[]> = {
       annual_turnover: 2500000,
     },
   ],
+  Vehicle: [
+    {
+      id: 'VL-700101',
+      account_no: 'VL-700101',
+      loan_type: 'Vehicle',
+      application_date: '2026-02-18',
+      disbursed_date: '2026-02-22',
+      branch_location: '001-HO MAIN BRANCH',
+      member_id: 'MBR024',
+      member_name: 'Pradeep Shetty',
+      guarantor_name: 'Vinod Shetty',
+      guarantor_contact: '9845123987',
+      sanctioned_amount: 450000,
+      interest_rate: 10.5,
+      tenure_months: 48,
+      emi_amount: 11528,
+      repayment_frequency: 'Monthly',
+      processing_fee: 4500,
+      outstanding_balance: 420000,
+      disbursement_mode: 'Cheque / DD',
+      credit_account_no: 'SB-100224',
+      status: 'active',
+      vehicle_reg_no: 'KA-20-MB-7845',
+      vehicle_model: 'Maruti Suzuki Swift Dzire ZXi',
+      purpose_of_loan: 'Commercial / Personal Car Purchase',
+    },
+  ],
+  Education: [
+    {
+      id: 'EL-800201',
+      account_no: 'EL-800201',
+      loan_type: 'Education',
+      application_date: '2026-01-20',
+      disbursed_date: '2026-01-25',
+      branch_location: '002-MANIPAL BRANCH',
+      member_id: 'MBR038',
+      member_name: 'Shwetha Kamath',
+      guarantor_name: 'Mohan Kamath',
+      guarantor_contact: '9448123654',
+      sanctioned_amount: 300000,
+      interest_rate: 8.5,
+      tenure_months: 36,
+      emi_amount: 9470,
+      repayment_frequency: 'Monthly',
+      processing_fee: 1500,
+      outstanding_balance: 280000,
+      disbursement_mode: 'Direct SB Credit',
+      credit_account_no: 'SB-100238',
+      status: 'active',
+      education_institute: 'Manipal Institute of Technology (MIT)',
+      education_course: 'B.Tech in Computer Science',
+      purpose_of_loan: 'Higher Education Tuition & Hostel Fees',
+    },
+  ],
+  Agriculture: [
+    {
+      id: 'AL-900301',
+      account_no: 'AL-900301',
+      loan_type: 'Agriculture',
+      application_date: '2026-02-10',
+      disbursed_date: '2026-02-14',
+      branch_location: '004-KARKALA BRANCH',
+      member_id: 'MBR042',
+      member_name: 'Ananda Poojary',
+      guarantor_name: 'Shekar Poojary',
+      guarantor_contact: '9880123412',
+      sanctioned_amount: 150000,
+      interest_rate: 7.0,
+      tenure_months: 24,
+      emi_amount: 6716,
+      repayment_frequency: 'Monthly',
+      processing_fee: 750,
+      outstanding_balance: 135000,
+      disbursement_mode: 'Direct SB Credit',
+      credit_account_no: 'SB-100242',
+      status: 'active',
+      agri_land_details: 'Sy. No 114/2, 3.2 Acres, Karkala',
+      agri_crop_type: 'Paddy & Arecanut Farming Support',
+      purpose_of_loan: 'Seasonal Crop Production & Drip Irrigation',
+    },
+  ],
+  Pigmi: [
+    {
+      id: 'PGL-600401',
+      account_no: 'PGL-600401',
+      loan_type: 'Pigmi',
+      application_date: '2026-03-01',
+      disbursed_date: '2026-03-05',
+      branch_location: '001-HO MAIN BRANCH',
+      member_id: 'MBR051',
+      member_name: 'Dinesh Kulal',
+      guarantor_name: 'Ravi Kulal',
+      guarantor_contact: '9448123890',
+      sanctioned_amount: 50000,
+      interest_rate: 12.0,
+      tenure_months: 12,
+      emi_amount: 4442,
+      repayment_frequency: 'Monthly',
+      processing_fee: 500,
+      outstanding_balance: 45000,
+      disbursement_mode: 'Cash Disbursement',
+      credit_account_no: '',
+      status: 'active',
+      purpose_of_loan: 'Daily Pigmy Collection Linked Short Term Working Capital',
+    },
+  ],
+  'Pigmi Gold': [
+    {
+      id: 'PGLD-650501',
+      account_no: 'PGLD-650501',
+      loan_type: 'Pigmi Gold',
+      application_date: '2026-02-28',
+      disbursed_date: '2026-03-03',
+      branch_location: '001-HO MAIN BRANCH',
+      member_id: 'MBR056',
+      member_name: 'Geetha Acharya',
+      guarantor_name: 'Prasad Acharya',
+      guarantor_contact: '9880123777',
+      sanctioned_amount: 100000,
+      interest_rate: 9.0,
+      tenure_months: 12,
+      emi_amount: 8745,
+      repayment_frequency: 'Monthly',
+      processing_fee: 500,
+      outstanding_balance: 95000,
+      disbursement_mode: 'Cash Disbursement',
+      credit_account_no: '',
+      status: 'active',
+      gold_weight: 22.0,
+      gold_purity: '22K (91.6%)',
+      gold_valuation: 145000,
+      gold_packet_no: 'PGLD-VAULT-019',
+      purpose_of_loan: 'Gold Pledge with Daily Agent Pigmi Repayment',
+    },
+  ],
   House: [
     {
       id: 'HL-500601',
@@ -269,6 +404,12 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
         business_name: l.business_name,
         business_gstin: l.business_gstin,
         annual_turnover: l.annual_turnover,
+        vehicle_reg_no: l.vehicle_reg_no,
+        vehicle_model: l.vehicle_model,
+        education_institute: l.education_institute,
+        education_course: l.education_course,
+        agri_land_details: l.agri_land_details,
+        agri_crop_type: l.agri_crop_type,
       }))
     : dataList;
 
@@ -737,10 +878,10 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
               </Paper>
 
               {/* Specific Collateral Details */}
-              {loanToView.loan_type === 'Gold' && (
+              {(loanToView.loan_type === 'Gold' || loanToView.loan_type === 'Pigmi Gold') && (
                 <Paper elevation={0} sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#fff' }}>
                   <Typography variant="subtitle2" fontWeight={700} color="#b45309" sx={{ mb: 1.5 }}>
-                    Gold Pledged & Valuation
+                    {loanToView.loan_type === 'Pigmi Gold' ? 'Pigmi Gold Collateral & Appraised Valuation' : 'Gold Collateral & Appraised Valuation'}
                   </Typography>
                   <Grid container spacing={1.5}>
                     <Grid item xs={6} sm={3}>
@@ -760,6 +901,60 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
                     <Grid item xs={6} sm={3}>
                       <Typography variant="caption" color="text.secondary">Vault Packet:</Typography>
                       <Typography variant="body2" fontWeight={600}>{loanToView.gold_packet_no || '-'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              )}
+
+              {loanToView.loan_type === 'Vehicle' && (
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#fff' }}>
+                  <Typography variant="subtitle2" fontWeight={700} color="#1e3a8a" sx={{ mb: 1.5 }}>
+                    Vehicle & Hypothecation Details
+                  </Typography>
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Vehicle Reg No / Chassis:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.vehicle_reg_no || '-'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Vehicle Make & Model:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.vehicle_model || '-'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              )}
+
+              {loanToView.loan_type === 'Education' && (
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#fff' }}>
+                  <Typography variant="subtitle2" fontWeight={700} color="#1e3a8a" sx={{ mb: 1.5 }}>
+                    Education & Institution Details
+                  </Typography>
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Institution Name:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.education_institute || '-'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Course / Degree:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.education_course || '-'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              )}
+
+              {loanToView.loan_type === 'Agriculture' && (
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#fff' }}>
+                  <Typography variant="subtitle2" fontWeight={700} color="#047857" sx={{ mb: 1.5 }}>
+                    Agricultural Land & Crop Details
+                  </Typography>
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Land Survey & Acreage:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.agri_land_details || '-'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary">Crop / Purpose:</Typography>
+                      <Typography variant="body2" fontWeight={600}>{loanToView.agri_crop_type || '-'}</Typography>
                     </Grid>
                   </Grid>
                 </Paper>
@@ -810,6 +1005,15 @@ const LoanMasterPage: React.FC<LoanMasterPageProps> = ({ loanType }) => {
                       </Typography>
                     </Grid>
                   </Grid>
+                </Paper>
+              )}
+
+              {loanToView.purpose_of_loan && (
+                <Paper elevation={0} sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: '10px', bgcolor: '#fff' }}>
+                  <Typography variant="subtitle2" fontWeight={700} color="#1e3a8a" sx={{ mb: 0.5 }}>
+                    Loan Purpose & Notes
+                  </Typography>
+                  <Typography variant="body2" color="#334155">{loanToView.purpose_of_loan}</Typography>
                 </Paper>
               )}
             </Box>

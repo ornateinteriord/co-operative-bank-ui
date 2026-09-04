@@ -105,7 +105,10 @@ import {
   Briefcase,
   Coins,
   Layers,
-  BadgePercent
+  BadgePercent,
+  Car,
+  GraduationCap,
+  Sprout,
 } from "lucide-react";
 
 export const LucideIcons = {
@@ -144,6 +147,9 @@ export const LucideIcons = {
   Coins,
   Layers,
   BadgePercent,
+  Car,
+  GraduationCap,
+  Sprout,
 };
 
 import Dashboard from "@mui/icons-material/Dashboard";

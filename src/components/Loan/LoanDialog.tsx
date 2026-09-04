@@ -25,7 +25,18 @@ import { toast } from 'react-toastify';
 import { useGetMemberBasicInfo } from '../../queries/transfer';
 import { useCreateLoan, useUpdateLoan } from '../../queries/banking';
 
-export type LoanTypeCategory = 'Personal' | 'Mortgage' | 'Gold' | 'Business' | 'House' | 'Other';
+export type LoanTypeCategory =
+  | 'Personal'
+  | 'Mortgage'
+  | 'Gold'
+  | 'Business'
+  | 'Vehicle'
+  | 'Education'
+  | 'Agriculture'
+  | 'Pigmi'
+  | 'Pigmi Gold'
+  | 'House'
+  | 'Other';
 
 export interface LoanFormData {
   id?: string;
@@ -62,6 +73,12 @@ export interface LoanFormData {
   business_gstin?: string;
   annual_turnover?: number;
   purpose_of_loan?: string;
+  vehicle_reg_no?: string;
+  vehicle_model?: string;
+  education_institute?: string;
+  education_course?: string;
+  agri_land_details?: string;
+  agri_crop_type?: string;
 }
 
 const defaultInitialForm: LoanFormData = {
@@ -96,6 +113,12 @@ const defaultInitialForm: LoanFormData = {
   business_gstin: '',
   annual_turnover: 1500000,
   purpose_of_loan: '',
+  vehicle_reg_no: '',
+  vehicle_model: '',
+  education_institute: '',
+  education_course: '',
+  agri_land_details: '',
+  agri_crop_type: '',
 };
 
 interface LoanDialogProps {
@@ -156,10 +179,18 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
         loanType === 'Personal' ? 'PL' :
         loanType === 'Mortgage' ? 'ML' :
         loanType === 'Business' ? 'BL' :
+        loanType === 'Vehicle' ? 'VL' :
+        loanType === 'Education' ? 'EL' :
+        loanType === 'Agriculture' ? 'AL' :
+        loanType === 'Pigmi' ? 'PGL' :
+        loanType === 'Pigmi Gold' ? 'PGLD' :
         loanType === 'House' ? 'HL' : 'OL';
       const autoAccNo = `${prefix}-${Date.now().toString().slice(-6)}`;
       const defaultRate =
-        loanType === 'Gold' ? 9.0 :
+        (loanType === 'Gold' || loanType === 'Pigmi Gold') ? 9.0 :
+        loanType === 'Agriculture' ? 7.0 :
+        loanType === 'Education' ? 8.5 :
+        loanType === 'Vehicle' ? 10.5 :
         loanType === 'House' ? 8.5 :
         loanType === 'Mortgage' ? 10.5 :
         loanType === 'Business' ? 13.0 : 12.0;
@@ -518,11 +549,11 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
           </Paper>
 
           {/* Section 3: Collateral / Loan Specific Details */}
-          {loanType === 'Gold' && (
+          {(loanType === 'Gold' || loanType === 'Pigmi Gold') && (
             <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b45309', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box component="span" sx={{ width: 4, height: 16, bgcolor: '#f59e0b', borderRadius: 1 }} />
-                Gold Collateral & Appraised Valuation
+                {loanType === 'Pigmi Gold' ? 'Pigmi Gold Collateral & Appraised Valuation' : 'Gold Collateral & Appraised Valuation'}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={3}>
@@ -569,6 +600,99 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
                     placeholder="e.g. PKT-091"
                     value={formData.gold_packet_no}
                     onChange={(e) => handleChange('gold_packet_no', e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+
+          {loanType === 'Vehicle' && (
+            <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component="span" sx={{ width: 4, height: 16, bgcolor: '#3b82f6', borderRadius: 1 }} />
+                Vehicle & Hypothecation Details
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Vehicle Registration / Chassis No."
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. KA-20-MB-1234"
+                    value={formData.vehicle_reg_no}
+                    onChange={(e) => handleChange('vehicle_reg_no', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Vehicle Make & Model"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. Maruti Swift Dzire / Commercial"
+                    value={formData.vehicle_model}
+                    onChange={(e) => handleChange('vehicle_model', e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+
+          {loanType === 'Education' && (
+            <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component="span" sx={{ width: 4, height: 16, bgcolor: '#3b82f6', borderRadius: 1 }} />
+                Education Course & Institution Details
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="College / Institution Name"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. Manipal Academy of Higher Education"
+                    value={formData.education_institute}
+                    onChange={(e) => handleChange('education_institute', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Course / Degree Name"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. B.Tech / MBBS / MBA"
+                    value={formData.education_course}
+                    onChange={(e) => handleChange('education_course', e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+
+          {loanType === 'Agriculture' && (
+            <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#047857', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component="span" sx={{ width: 4, height: 16, bgcolor: '#10b981', borderRadius: 1 }} />
+                Agricultural Land & Crop Details
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Land Survey No. & Extent (Acres)"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. Sy. No 78/2, 3.5 Acres"
+                    value={formData.agri_land_details}
+                    onChange={(e) => handleChange('agri_land_details', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Crop Type / Farming Activity"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. Paddy / Arecanut / Dairy"
+                    value={formData.agri_crop_type}
+                    onChange={(e) => handleChange('agri_crop_type', e.target.value)}
                   />
                 </Grid>
               </Grid>
@@ -649,6 +773,27 @@ const LoanDialog: React.FC<LoanDialogProps> = ({
                     size="small"
                     value={formData.annual_turnover}
                     onChange={(e) => handleChange('annual_turnover', e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+
+          {(loanType === 'Pigmi' || loanType === 'Personal' || loanType === 'Other') && (
+            <Paper elevation={0} sx={{ p: 2.5, mb: 2.5, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e3a8a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box component="span" sx={{ width: 4, height: 16, bgcolor: '#3b82f6', borderRadius: 1 }} />
+                {loanType === 'Pigmi' ? 'Pigmi Loan Purpose & Collection Details' : 'Loan Purpose & Particulars'}
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Purpose of Loan"
+                    fullWidth
+                    size="small"
+                    placeholder="e.g. Business working capital / Short term daily collection support"
+                    value={formData.purpose_of_loan || ''}
+                    onChange={(e) => handleChange('purpose_of_loan', e.target.value)}
                   />
                 </Grid>
               </Grid>
