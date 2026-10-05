@@ -42,6 +42,7 @@ import SpeedIcon from '@mui/icons-material/Speed';
 import LockIcon from '@mui/icons-material/Lock';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useGetMyLoans } from '../../../queries/Member';
 
 import TokenService from '../../../api/token/tokenService';
@@ -153,6 +154,7 @@ const UserDashboard = () => {
     { label: "FD Account", icon: <NoteAddIcon />, color: "#f59e0b", type: "fd" },
     { label: "CA Account", icon: <AccountBalanceIcon />, color: "#6366f1", type: "ca" },
     { label: "Pigmy Account", icon: <SavingsIcon />, color: "#10b981", type: "pigmy" },
+    { label: "My Passbook", icon: <MenuBookIcon />, color: "#0a2558", route: "/user/passbook" },
     { label: "BMS CREDIT", icon: <CreditCardIcon />, color: "#6366f1" },
     { label: "GOLD LOAN", icon: <MonetizationOnIcon />, color: "#10b981" },
     { label: "Group LOAN", icon: <GroupsIcon />, color: "#3b82f6" },
@@ -174,6 +176,7 @@ const UserDashboard = () => {
     {
       title: "ACCOUNT",
       items: [
+        { label: "My Passbook", icon: <MenuBookIcon />, route: "/user/passbook", color: "#0a2558" },
         { label: "Profile", icon: <AccountCircleIcon />, route: "/user/account/profile", color: "#3b82f6" },
         { label: "KYC", icon: <VerifiedUserIcon />, route: "/user/account/kyc", color: "#10b981" },
         { label: "Password", icon: <LockIcon />, route: "/user/account/change-password", color: "#f59e0b" },
@@ -280,6 +283,29 @@ const UserDashboard = () => {
 
       {/* Row 2: Buttons + CB icon — all same height */}
       <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
+        {/* MY PASSBOOK — Direct navigation button for all users */}
+        <Button
+          variant="contained"
+          onClick={() => navigate('/user/passbook')}
+          startIcon={<MenuBookIcon sx={{ fontSize: '1.1rem !important' }} />}
+          sx={{
+            flex: 1,
+            borderRadius: '14px',
+            textTransform: 'none',
+            fontWeight: 900,
+            bgcolor: 'white',
+            color: '#0a2558',
+            fontSize: '12.5px',
+            whiteSpace: 'nowrap',
+            py: 1.1,
+            minWidth: 0,
+            '&:hover': { bgcolor: '#f1f5f9' },
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+          }}
+        >
+          MY PASSBOOK
+        </Button>
+
         {/* FD BOND — Visible if user is active */}
         {isUserActive && (
           <Button
@@ -340,6 +366,14 @@ const UserDashboard = () => {
   );
 
   const handleAccountClick = (item: any) => {
+    if (item.route) {
+      navigate(item.route);
+      return;
+    }
+    if (item.label === 'My Passbook') {
+      navigate('/user/passbook');
+      return;
+    }
     if (['SB Account', 'RD Account', 'FD Account', 'CA Account', 'Pigmy Account'].includes(item.label)) {
       navigate(`/user/account-opening/${item.type}`);
     } else if (item.label === 'GOLD LOAN') {
@@ -352,8 +386,6 @@ const UserDashboard = () => {
       navigate('/user/loans?type=Personal');
     } else if (item.label === 'Group LOAN') {
       navigate('/user/loans?type=Business');
-    } else if (item.route) {
-      navigate(item.route);
     }
   };
 

@@ -171,3 +171,30 @@ body {
   color: hsl(var(--foreground));
   transition: background 0.3s ease;
 }
+
+/* ════════════════ PRINT STYLES ════════════════ */
+@media print {
+  /* Hide sidebar, app bar, navigation, and page controls entirely */
+  .sidebar,
+  .navbar-toolbar,
+  .MuiAppBar-root,
+  .MuiDrawer-root,
+  header,
+  nav,
+  button,
+  .passbook-root > div:first-child,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .content-wrapper {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+    background: transparent !important;
+  }
+}

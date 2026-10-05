@@ -194,6 +194,8 @@ const UserOverdraft = lazy(() => import("./pages/User-Pages/Overdraft/Overdraft"
 const UserAccountOpening = lazy(() => import("./pages/User-Pages/AccountOpening/AccountOpening"));
 const UserAgentWallet = lazy(() => import("./pages/User-Pages/Wallet/AgentWallet"));
 const UserLoans = lazy(() => import("./pages/User-Pages/Loans/MyLoans"));
+const PassbookPrintingPage = lazy(() => import("./pages/Admin-Pages/Passbook/PassbookPrintingPage"));
+const UserPassbookPage = lazy(() => import("./pages/User-Pages/Passbook/UserPassbookPage"));
 
 const LoansMemberPending = lazy(() => import("./pages/Loans/Loanspending/Pending"));
 const LoansMemberProcessed = lazy(() => import("./pages/Loans/Loansprocesssed/Processed"));
@@ -554,6 +556,9 @@ const RoutesProvider = ({
               {/* DD Creations */}
               <Route path="/admin_01/dd-creations" element={<AdminDDCreations />} />
 
+              {/* Passbook Printing */}
+              <Route path="/admin_01/passbook" element={<PassbookPrintingPage />} />
+              <Route path="/banking/passbook" element={<PassbookPrintingPage />} />
             </Route>
 
             {/* agent routes */}
@@ -629,8 +634,7 @@ const RoutesProvider = ({
               <Route path="/user/overdraft" element={<UserOverdraft />} />
               <Route path="/user/account-opening/:type" element={<UserAccountOpening />} />
               <Route path="/user/loans" element={<UserLoans />} />
-
-
+              <Route path="/user/passbook" element={<UserPassbookPage />} />
             </Route>
 
 

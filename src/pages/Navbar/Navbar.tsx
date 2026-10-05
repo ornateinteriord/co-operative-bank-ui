@@ -5,6 +5,7 @@ import {
   Menu as MenuIcon,
   Settings,
   User,
+  BookOpen,
 } from "lucide-react";
 import "./navbar.scss";
 import {
@@ -193,6 +194,20 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
             <User size={18} style={{ marginRight: "8px" }} />
             My Profile
           </MenuItem>
+
+          {userRole === "USER" && (
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/user/passbook"); }}>
+              <BookOpen size={18} style={{ marginRight: "8px", color: "#0a2558" }} />
+              My Passbook
+            </MenuItem>
+          )}
+
+          {(userRole === "ADMIN" || userRole === "ADMIN_01") && (
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/admin_01/passbook"); }}>
+              <BookOpen size={18} style={{ marginRight: "8px", color: "#0a2558" }} />
+              Passbook Printing
+            </MenuItem>
+          )}
 
           <MenuItem
             onClick={() => {

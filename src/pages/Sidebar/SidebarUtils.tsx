@@ -100,6 +100,12 @@ export const UserSideBarMenuItems: SideBarMenuItemType[] = [
     isExpandable: false,
   },
   {
+    name: "My Passbook",
+    icon: <LucideIcons.BookOpen />,
+    path: "/user/passbook",
+    isExpandable: false,
+  },
+  {
     name: "Wallet Balance",
     icon: <CreditCardIcon />,
     path: "/user/wallet",
@@ -383,6 +389,7 @@ export const Admin01SideBarMenuItems: SideBarMenuItemType[] = [
       { name: "Journal", path: "/admin/banking/journal", icon: <LucideIcons.BookOpen /> },
       { name: "Standing Instruction", path: "/admin/banking/standing-instruction", icon: <LucideIcons.CalendarClock /> },
       { name: "Pay Demand", path: "/admin/banking/pay-demand", icon: <LucideIcons.HandCoins /> },
+      { name: "Passbook Printing", path: "/admin_01/passbook", icon: <LucideIcons.BookOpen /> },
     ],
   },
   {

@@ -4,6 +4,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PersonIcon from '@mui/icons-material/Person';
 import ChatIcon from '@mui/icons-material/Chat';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { useGetMemberDetails } from '../../api/Memeber';
@@ -21,6 +22,7 @@ const MobileBottomNav: React.FC = () => {
   // Sync state with current path
   React.useEffect(() => {
     if (location.pathname.includes('/user/dashboard')) setValue('/user/dashboard');
+    else if (location.pathname.includes('/user/passbook')) setValue('/user/passbook');
     else if (location.pathname.includes('/user/wallet')) setValue('/user/wallet');
     else if (location.pathname.includes('/user/chat')) setValue('/user/chat');
     else if (location.pathname.includes('/user/account/profile')) setValue('/user/account/profile');
@@ -86,6 +88,11 @@ const MobileBottomNav: React.FC = () => {
             value="/user/dashboard"
             label="Home"
             icon={<Box className={value === "/user/dashboard" ? "indicator" : ""}>{<HomeIcon />}</Box>}
+          />
+          <BottomNavigationAction
+            value="/user/passbook"
+            label="Passbook"
+            icon={<Box className={value === "/user/passbook" ? "indicator" : ""}>{<MenuBookIcon />}</Box>}
           />
           {isROIActive && (
             <BottomNavigationAction
