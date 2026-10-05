@@ -15,6 +15,8 @@ import {
   CircularProgress,
   Divider,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -174,6 +176,8 @@ const AccountOpeningForm: React.FC<Props> = ({
   isUser = false
 }) => {
   const navigate = useNavigate();
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const theme = ACCOUNT_THEMES[defaultAccountType?.toUpperCase() || 'SB'] || ACCOUNT_THEMES.SB;
 
   // Custom styles for inputs based on theme
@@ -681,9 +685,9 @@ const AccountOpeningForm: React.FC<Props> = ({
     <Box sx={{
       minHeight: '100vh',
       background: `linear-gradient(180deg, ${theme.light} 0%, #f4f7f9 400px, #f4f7f9 100%)`,
-      px: { xs: 1.5, sm: 2, md: 3 },
-      pt: 2,
-      pb: 4,
+      px: { xs: 1.5, sm: 2.5, md: 3 },
+      pt: { xs: 1.5, md: 2.5 },
+      pb: { xs: 10, md: 4 },
       transition: 'background 0.3s ease'
     }}>
       <Typography
@@ -691,37 +695,37 @@ const AccountOpeningForm: React.FC<Props> = ({
         sx={{
           fontWeight: 700,
           color: theme.primary,
-          mb: 3,
-          fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
+          mb: { xs: 2, md: 3 },
+          fontSize: { xs: '1.25rem', sm: '1.6rem', md: '2rem' }
         }}
       >
         {title ?? `${form.accountType || defaultAccountType} Account Opening`}
       </Typography>
       <Card sx={{
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-        borderRadius: '16px',
+        borderRadius: { xs: '16px', md: '20px' },
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(10px)',
         border: `1px solid ${theme.primary}15`,
       }}>
-        <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Grid container spacing={4}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 4 } }}>
+          <Grid container spacing={{ xs: 2.5, md: 4 }}>
             {/* Member Information Section */}
             <Grid item xs={12} md={6}>
               <Box sx={{
                 bgcolor: '#f0f7ff',
-                p: 3,
-                borderRadius: 2,
+                p: { xs: 1.75, sm: 2.5, md: 3 },
+                borderRadius: '16px',
                 border: '1px solid #e3f2fd',
               }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <PersonIcon sx={{ color: theme.primary, fontSize: 28 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1f2937' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                  <PersonIcon sx={{ color: theme.primary, fontSize: { xs: 24, sm: 28 } }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1f2937', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                     Member Information
                   </Typography>
                 </Box>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={8}>
+                  <Grid item xs={12} sm={8}>
                     <TextField
                       placeholder="Member ID"
                       size="small"
@@ -733,7 +737,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                       sx={memberInputStyle}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} sm={4}>
                     <Button
                       variant="contained"
                       size="medium"
@@ -744,6 +748,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                         background: theme.gradient,
                         fontWeight: 600,
                         borderRadius: '10px',
+                        py: { xs: 1, sm: 0.85 },
                         boxShadow: theme.shadow,
                         '&:hover': {
                           background: theme.secondary,
@@ -772,7 +777,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Father / Husband Name"
                           fullWidth
@@ -782,7 +787,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Mother Name"
                           fullWidth
@@ -792,7 +797,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Age"
                           fullWidth
@@ -802,7 +807,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="DOB"
                           fullWidth
@@ -824,7 +829,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Mobile No"
                           fullWidth
@@ -834,7 +839,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="PAN Card"
                           fullWidth
@@ -844,7 +849,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Aadhar Card"
                           fullWidth
@@ -854,7 +859,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                           sx={readOnlyInputStyle}
                         />
                       </Grid>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Occupation"
                           fullWidth
@@ -914,18 +919,18 @@ const AccountOpeningForm: React.FC<Props> = ({
             <Grid item xs={12} md={6}>
               <Box sx={{
                 bgcolor: '#f0fdf4',
-                p: 3,
-                borderRadius: 2,
+                p: { xs: 1.75, sm: 2.5, md: 3 },
+                borderRadius: '16px',
                 border: '1px solid #dcfce7',
               }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                  <AccountBalanceIcon sx={{ color: theme.primary, fontSize: 28 }} />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1f2937' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                  <AccountBalanceIcon sx={{ color: theme.primary, fontSize: { xs: 24, sm: 28 } }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1f2937', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                     Account Information
                   </Typography>
                 </Box>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <FormControl fullWidth size="small" sx={readOnlyInputStyle}>
                       <InputLabel id="account-type-label">Account Type</InputLabel>
                       <Select
@@ -979,7 +984,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <FormControl fullWidth size="small" sx={accountInputStyle}>
                       <InputLabel id="account-op-label">Account Operation</InputLabel>
                       <Select
@@ -1010,7 +1015,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     </Grid>
                   )}
 
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       label="Opening Date"
                       type="date"
@@ -1027,7 +1032,7 @@ const AccountOpeningForm: React.FC<Props> = ({
 
                   {showInterestFields && (
                     <>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <FormControl fullWidth size="small" sx={accountInputStyle}>
                           <InputLabel id="interest-slab-label">Interest Slab</InputLabel>
                           <Select
@@ -1047,7 +1052,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Interest Rate (%)"
                           fullWidth
@@ -1059,7 +1064,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                         />
                       </Grid>
 
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Duration (Months)"
                           fullWidth
@@ -1073,7 +1078,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     </>
                   )}
 
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       label="Amount"
                       fullWidth
@@ -1087,7 +1092,7 @@ const AccountOpeningForm: React.FC<Props> = ({
 
                   {showInterestFields && (
                     <>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Maturity Date"
                           type="date"
@@ -1102,7 +1107,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                         />
                       </Grid>
 
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           label="Maturity Value"
                           fullWidth
@@ -1116,7 +1121,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                   )}
 
                   {/* Introducer & Agent Section - Now visible but Read-Only for Members */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       label="Introducer Code"
                       fullWidth
@@ -1138,7 +1143,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     />
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       label="Introducer Name"
                       fullWidth
@@ -1149,7 +1154,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                     />
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     {isUser ? (
                       <TextField
                         label="Agent Name"
@@ -1178,7 +1183,7 @@ const AccountOpeningForm: React.FC<Props> = ({
                   </Grid>
 
                   {!isUser && (
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} sm={6}>
                       <TextField
                         label="Agent Name (Display)"
                         fullWidth
@@ -1192,18 +1197,24 @@ const AccountOpeningForm: React.FC<Props> = ({
 
                   <Grid item xs={12} sx={{ mt: 2 }}>
                     <Divider sx={{ mb: 3 }} />
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column-reverse', sm: 'row' },
+                      justifyContent: 'flex-end',
+                      gap: 1.5,
+                    }}>
                       {isUser && (form.accountType === 'PIGMY' || form.accountType === 'AGP005') && (
                         <Button
                           variant="outlined"
                           size="large"
+                          fullWidth={isMobile}
                           onClick={() => navigate('/user/agent-wallet')}
                           sx={{
                             borderColor: theme.primary,
                             color: theme.primary,
-                            px: 4,
-                            py: 1.5,
-                            fontWeight: 600,
+                            px: { xs: 2.5, sm: 4 },
+                            py: { xs: 1.2, sm: 1.5 },
+                            fontWeight: 700,
                             borderRadius: '12px',
                             '&:hover': {
                               borderColor: theme.secondary,
@@ -1217,13 +1228,14 @@ const AccountOpeningForm: React.FC<Props> = ({
                       <Button
                         variant="contained"
                         size="large"
+                        fullWidth={isMobile}
                         onClick={handleSubmit}
                         disabled={!memberInfo || createAccountMutation.isPending || isOrderPending}
                         sx={{
                           background: theme.gradient,
-                          px: 4,
-                          py: 1.5,
-                          fontWeight: 600,
+                          px: { xs: 2.5, sm: 4 },
+                          py: { xs: 1.2, sm: 1.5 },
+                          fontWeight: 700,
                           borderRadius: '12px',
                           boxShadow: theme.shadow,
                           '&:hover': {

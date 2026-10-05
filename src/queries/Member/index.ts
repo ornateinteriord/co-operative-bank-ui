@@ -146,3 +146,53 @@ export const useGetSponsers = (memberId: string | null, enabled: boolean = true)
         enabled: enabled && !!memberId,
     });
 };
+
+export interface MemberLoanItem {
+    id: string;
+    account_id: string;
+    account_no: string;
+    account_type: string;
+    loan_type: string;
+    category: string;
+    sanctioned_amount: number;
+    outstanding_balance: number;
+    total_repaid: number;
+    interest_rate: number;
+    tenure_months: number;
+    emi_amount: number;
+    repayment_frequency: string;
+    date_of_opening: string;
+    date_of_maturity: string;
+    status: string;
+    branch_id: string;
+    account_operation: string;
+    introducer?: string;
+    assigned_to?: string;
+    joint_member?: string;
+    recent_transactions?: any[];
+}
+
+export interface MemberLoansResponse {
+    success: boolean;
+    message: string;
+    data: {
+        loans: MemberLoanItem[];
+        summary: {
+            totalSanctionedAmount: number;
+            totalOutstandingBalance: number;
+            totalMonthlyEmi: number;
+            activeLoansCount: number;
+            totalLoansCount: number;
+        };
+    };
+}
+
+// GET MY LOANS (for logged-in member)
+export const useGetMyLoans = () => {
+    return useQuery({
+        queryKey: ["myLoans"],
+        queryFn: async () => {
+            return await useApi<MemberLoansResponse>("GET", "/member/get-my-loans");
+        },
+    });
+};

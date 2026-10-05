@@ -121,7 +121,6 @@ const AdminStandingInstruction = lazy(() => import("./pages/Admin-Pages/Banking/
 const AdminPayDemand = lazy(() => import("./pages/Admin-Pages/Banking/PayDemand"));
 const AdminDDCreations = lazy(() => import("./pages/Admin-Pages/Banking/DDCreations"));
 const DepositCalculator = lazy(() => import("./pages/Admin-Pages/Banking/Calculators/DepositCalculator"));
-const LoanMasterPage = lazy(() => import("./pages/Admin-Pages/Loan/LoanMasterPage"));
 const AgentAssignment = lazy(() => import("./pages/Admin-Pages/AgentAssignment/AgentAssignment"));
 const AdminWithdrawalRequests = lazy(() => import("./pages/Admin-Pages/Withdrawal/WithdrawalRequests"));
 
@@ -194,6 +193,7 @@ const UserChat = lazy(() => import("./pages/User-Pages/Chat/Chat"));
 const UserOverdraft = lazy(() => import("./pages/User-Pages/Overdraft/Overdraft"));
 const UserAccountOpening = lazy(() => import("./pages/User-Pages/AccountOpening/AccountOpening"));
 const UserAgentWallet = lazy(() => import("./pages/User-Pages/Wallet/AgentWallet"));
+const UserLoans = lazy(() => import("./pages/User-Pages/Loans/MyLoans"));
 
 const LoansMemberPending = lazy(() => import("./pages/Loans/Loanspending/Pending"));
 const LoansMemberProcessed = lazy(() => import("./pages/Loans/Loansprocesssed/Processed"));
@@ -551,17 +551,6 @@ const RoutesProvider = ({
               <Route path="/loan/pigmi-gold-viewall" element={<PigmiGoldLoanViewAll />} />
               <Route path="/loan/pigmi-gold-close" element={<PigmiGoldLoanClose />} />
 
-              {/* Legacy Loan Master Routes */}
-              <Route path="/admin/loans/personal" element={<LoanMasterPage loanType="Personal" />} />
-              <Route path="/admin/loans/mortgage" element={<LoanMasterPage loanType="Mortgage" />} />
-              <Route path="/admin/loans/gold" element={<LoanMasterPage loanType="Gold" />} />
-              <Route path="/admin/loans/business" element={<LoanMasterPage loanType="Business" />} />
-              <Route path="/admin/loans/vehicle" element={<LoanMasterPage loanType="Vehicle" />} />
-              <Route path="/admin/loans/education" element={<LoanMasterPage loanType="Education" />} />
-              <Route path="/admin/loans/agriculture" element={<LoanMasterPage loanType="Agriculture" />} />
-              <Route path="/admin/loans/pigmi" element={<LoanMasterPage loanType="Pigmi" />} />
-              <Route path="/admin/loans/pigmi-gold" element={<LoanMasterPage loanType="Pigmi Gold" />} />
-
               {/* DD Creations */}
               <Route path="/admin_01/dd-creations" element={<AdminDDCreations />} />
 
@@ -639,6 +628,7 @@ const RoutesProvider = ({
               <Route path="/user/chat" element={<UserChat />} />
               <Route path="/user/overdraft" element={<UserOverdraft />} />
               <Route path="/user/account-opening/:type" element={<UserAccountOpening />} />
+              <Route path="/user/loans" element={<UserLoans />} />
 
 
             </Route>

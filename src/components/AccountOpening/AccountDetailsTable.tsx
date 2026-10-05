@@ -71,27 +71,40 @@ const AccountDetailsTable: React.FC<Props> = ({ title = 'Account Details', colum
   };
 
   return (
-    <Box sx={{ mt: 9, px: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a237e', mb: 1 }}>{title}</Typography>
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={2}>
-            <Button variant="outlined">Excel</Button>
+    <Box sx={{
+      mt: { xs: 2, md: 4 },
+      px: { xs: 1.5, sm: 2.5, md: 3 },
+      pb: { xs: 10, md: 4 }
+    }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a237e', mb: 2, fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' } }}>
+        {title}
+      </Typography>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: 3, borderRadius: '14px' }}>
+        <Grid container spacing={1.5} alignItems="center">
+          <Grid item xs={12} sm={4} md={2}>
+            <Button variant="outlined" fullWidth>Excel</Button>
           </Grid>
-          <Grid item xs={12} md={6} />
-          <Grid item xs={12} md={2}>
+          <Grid item xs={12} sm={false} md={6} sx={{ display: { xs: 'none', md: 'block' } }} />
+          <Grid item xs={6} sm={4} md={2}>
             <TextField size="small" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} fullWidth />
           </Grid>
-          <Grid item xs={12} md={2}>
+          <Grid item xs={6} sm={4} md={2}>
             <TextField size="small" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} fullWidth />
           </Grid>
         </Grid>
       </Paper>
 
-      <Paper>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Paper sx={{ borderRadius: '14px', overflow: 'hidden' }}>
+        <Box sx={{
+          p: { xs: 1.5, sm: 2 },
+          display: 'flex',
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 1.5
+        }}>
           <Button variant="contained">Print</Button>
-          <TextField size="small" placeholder="Search" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
+          <TextField size="small" placeholder="Search..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} sx={{ width: { xs: '100%', sm: 260 } }} />
         </Box>
 
         <TableContainer>

@@ -10,6 +10,7 @@ import {
   Button,
   Stack,
   Avatar,
+  Chip,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
@@ -40,6 +41,8 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import SpeedIcon from '@mui/icons-material/Speed';
 import LockIcon from '@mui/icons-material/Lock';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import { useGetMyLoans } from '../../../queries/Member';
 
 import TokenService from '../../../api/token/tokenService';
 import {
@@ -72,6 +75,11 @@ const UserDashboard = () => {
   const { mutate: verifyPayment, isPending: isVerifyingPayment } = useVerifyPayment();
   const { refetch: refetchTransactions } = useGetTransactionDetails("all");
   useGetDailyPayout(memberId);
+  const { data: myLoansData } = useGetMyLoans();
+  const loansSummary = myLoansData?.data?.summary;
+  const activeLoansCount = loansSummary?.activeLoansCount || 0;
+  const totalOutstandingLoan = loansSummary?.totalOutstandingBalance || 0;
+  const monthlyEmi = loansSummary?.totalMonthlyEmi || 0;
 
   const totalPrincipal = Number(walletOverview?.totalPackages || 0);
   const totalRoiPaidValue = Number(walletOverview?.roiBenefits || 0);
@@ -188,6 +196,15 @@ const UserDashboard = () => {
         { label: "My Directs", icon: <PersonAddAltIcon />, route: "/user/team/direct", color: "#6366f1" },
         { label: "Tree View", icon: <HubIcon />, route: "/user/team/tree", color: "#ef4444" },
         { label: "New Regi.", icon: <PersonAddAltIcon />, route: "/user/team/new-register", color: "#10b981" },
+      ]
+    },
+    {
+      title: "LOANS & ADVANCES",
+      items: [
+        { label: "My Loans", icon: <RequestQuoteIcon />, route: "/user/loans", color: "#1e40af" },
+        { label: "Gold Loan", icon: <MonetizationOnIcon />, route: "/user/loans?type=Gold", color: "#d97706" },
+        { label: "Pigmi Loan", icon: <CurrencyRupeeIcon />, route: "/user/loans?type=Pigmi", color: "#ea580c" },
+        { label: "Loan History", icon: <ReceiptLongIcon />, route: "/user/loantransactions", color: "#3b82f6" },
       ]
     }
   ];
@@ -325,6 +342,18 @@ const UserDashboard = () => {
   const handleAccountClick = (item: any) => {
     if (['SB Account', 'RD Account', 'FD Account', 'CA Account', 'Pigmy Account'].includes(item.label)) {
       navigate(`/user/account-opening/${item.type}`);
+    } else if (item.label === 'GOLD LOAN') {
+      navigate('/user/loans?type=Gold');
+    } else if (item.label === 'Pigmy Loan') {
+      navigate('/user/loans?type=Pigmi');
+    } else if (item.label === 'OD LOAN' || item.label === 'BMS CREDIT') {
+      navigate('/user/loans?type=Overdraft');
+    } else if (item.label === 'RD LOAN') {
+      navigate('/user/loans?type=Personal');
+    } else if (item.label === 'Group LOAN') {
+      navigate('/user/loans?type=Business');
+    } else if (item.route) {
+      navigate(item.route);
     }
   };
 
@@ -378,6 +407,78 @@ const UserDashboard = () => {
           >
             <img src="/cb.png" alt="BMS Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </Box>
+
+          {/* Active Loans Banner Widget (if user has active loans) */}
+          {activeLoansCount > 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                mb: 4,
+                p: { xs: 2, sm: 2.5, md: 3 },
+                borderRadius: '24px',
+                background: 'linear-gradient(135deg, #0a2558 0%, #1e40af 100%)',
+                color: 'white',
+                boxShadow: '0 10px 30px rgba(10, 37, 88, 0.15)',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                justifyContent: 'space-between',
+                gap: 2,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: { xs: 44, sm: 52 },
+                    height: { xs: 44, sm: 52 },
+                    borderRadius: '16px',
+                    bgcolor: 'rgba(255,255,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFC000',
+                    flexShrink: 0,
+                  }}
+                >
+                  <RequestQuoteIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />
+                </Box>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                      Active Loan Obligations
+                    </Typography>
+                    <Chip
+                      label={`${activeLoansCount} Active`}
+                      size="small"
+                      sx={{ bgcolor: '#10b981', color: 'white', fontWeight: 800, fontSize: '0.65rem' }}
+                    />
+                  </Box>
+                  <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600, display: 'block', fontSize: { xs: '0.72rem', sm: '0.78rem' } }}>
+                    Balance: ₹{totalOutstandingLoan.toLocaleString('en-IN')} | Monthly EMI: ₹{monthlyEmi.toLocaleString('en-IN')}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Button
+                variant="contained"
+                onClick={() => navigate('/user/loans')}
+                sx={{
+                  bgcolor: 'white',
+                  color: '#0a2558',
+                  fontWeight: 900,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  px: 2.5,
+                  py: 1,
+                  width: { xs: '100%', sm: 'auto' },
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: '#f8fafc' },
+                }}
+              >
+                View My Loans
+              </Button>
+            </Paper>
+          )}
 
           {/* Quick Services Grid */}
           <Box sx={{ mb: 6 }}>

@@ -9,8 +9,11 @@ import {
   CircularProgress,
   Box,
   Typography,
+  Button,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 import {
   DASHBOARD_CUTSOM_STYLE,
   getTransactionColumns,
@@ -20,6 +23,7 @@ import { toast } from "react-toastify";
 import { useGetTransactionDetails } from "../../../api/Memeber";
 
 const LoanTransaction = () => {
+  const navigate = useNavigate();
   const {
     data: transactionsResponse,
     isLoading,
@@ -100,64 +104,108 @@ const LoanTransaction = () => {
 
   if (isLoading) {
     return (
-      <Card sx={{ margin: "2rem", mt: 10, textAlign: "center", p: 3 }}>
-        <CircularProgress size={"4rem"} sx={{ color: "#0a2558" }} />
-      </Card>
+      <Box sx={{ p: { xs: 2, sm: 4 }, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress size={"3.5rem"} sx={{ color: "#0a2558" }} />
+      </Box>
     );
   }
 
   return (
-    <Card sx={{ margin: "2rem", mt: 10 }}>
-      <CardContent>
-        <Accordion defaultExpanded>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              backgroundColor: "#0a2558",
-              color: "#fff",
-              "& .MuiSvgIcon-root": { color: "#fff" },
-            }}
-          >
-            Loan Transactions ({filteredData.length})
-          </AccordionSummary>
-          <AccordionDetails>
-            <DataTable
-              columns={getTransactionColumns()}
-              data={filteredData}
-              pagination
-              customStyles={DASHBOARD_CUTSOM_STYLE}
-              paginationPerPage={25}
-              paginationRowsPerPageOptions={[25, 50, 100]}
-              highlightOnHover
-              progressPending={false}
-              noDataComponent={noDataComponent}
-              subHeader
-              subHeaderComponent={
-                <Box sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                  p: 1
-                }}>
-                  <Typography variant="body2" color="textSecondary">
-                    Showing {filteredData.length} loan transactions (excluding Approved status)
-                  </Typography>
-                  <TextField
-                    placeholder="Search loan transactions..."
-                    variant="outlined"
-                    size="small"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{ minWidth: 250 }}
-                  />
-                </Box>
-              }
-            />
-          </AccordionDetails>
-        </Accordion>
-      </CardContent>
-    </Card>
+    <Box sx={{
+      px: { xs: 1.5, sm: 3, md: 4 },
+      py: { xs: 2, md: 3 },
+      pb: { xs: 12, md: 6 },
+      maxWidth: '1600px',
+      margin: '0 auto',
+    }}>
+      {/* Top Header Bar */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: { xs: 2, md: 3 } }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/user/loans')}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 800,
+            color: '#0a2558',
+            borderRadius: '12px',
+            bgcolor: 'white',
+            px: { xs: 1.5, sm: 2 },
+            py: 0.8,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            '&:hover': { bgcolor: '#f8fafc' },
+          }}
+        >
+          Back to My Loans
+        </Button>
+      </Box>
+
+      <Card sx={{
+        borderRadius: { xs: '16px', md: '20px' },
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+      }}>
+        <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+          <Accordion defaultExpanded sx={{ boxShadow: 'none' }}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                backgroundColor: "#0a2558",
+                color: "#fff",
+                borderRadius: '12px',
+                "& .MuiSvgIcon-root": { color: "#fff" },
+                fontWeight: 700,
+              }}
+            >
+              Loan Transactions ({filteredData.length})
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: { xs: 0.5, sm: 1.5 }, py: 2 }}>
+              <DataTable
+                columns={getTransactionColumns()}
+                data={filteredData}
+                pagination
+                customStyles={DASHBOARD_CUTSOM_STYLE}
+                paginationPerPage={25}
+                paginationRowsPerPageOptions={[25, 50, 100]}
+                highlightOnHover
+                responsive
+                progressPending={false}
+                noDataComponent={noDataComponent}
+                subHeader
+                subHeaderComponent={
+                  <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    width: '100%',
+                    gap: 1.5,
+                    p: 1,
+                  }}>
+                    <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.78rem', sm: '0.875rem' } }}>
+                      Showing {filteredData.length} loan transactions (excluding Approved status)
+                    </Typography>
+                    <TextField
+                      placeholder="Search loan transactions..."
+                      variant="outlined"
+                      size="small"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      sx={{
+                        width: { xs: '100%', sm: 260 },
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                          fontSize: '0.85rem',
+                        },
+                      }}
+                    />
+                  </Box>
+                }
+              />
+            </AccordionDetails>
+          </Accordion>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

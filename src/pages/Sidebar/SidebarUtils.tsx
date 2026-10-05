@@ -85,22 +85,20 @@ export const UserSideBarMenuItems: SideBarMenuItemType[] = [
     ],
   },
   {
+    name: "Loans",
+    icon: <LucideIcons.BadgePercent />,
+    isExpandable: true,
+    subItems: [
+      { name: "My Loans", path: "/user/loans", icon: <LucideIcons.Coins /> },
+      { name: "Loan Transactions", path: "/user/loantransactions", icon: <ReceiptLongIcon /> },
+    ],
+  },
+  {
     name: "Transactions",
     icon: <ShowChartIcon />,
     path: "/user/transactions",
     isExpandable: false,
   },
-  /* Sub-menus collapsed into single Transactions link above
-  {
-    name: "Transactions",
-    icon: <ShowChartIcon />,
-    isExpandable: true,
-    subItems: [
-      { name: "RD Deposit", path: "/user/transactions", icon: <CreditCardIcon /> },
-      { name: "Loan", path: "/user/loantransactions", icon: <AccountBalance /> },
-    ],
-  },
-  */
   {
     name: "Wallet Balance",
     icon: <CreditCardIcon />,

@@ -26,6 +26,8 @@ import {
     DialogActions,
     IconButton,
     Divider,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import PrintIcon from '@mui/icons-material/Print';
@@ -167,6 +169,8 @@ const ACCOUNT_THEMES: Record<string, any> = {
 };
 
 const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
+    const muiTheme = useTheme();
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
     const theme = ACCOUNT_THEMES[accountType?.toUpperCase()] || ACCOUNT_THEMES.SB;
 
     // Dynamically update body class for the entire page
@@ -347,6 +351,7 @@ const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
     return (
         <Box sx={{ 
             p: { xs: 1.5, sm: 2, md: 3 }, 
+            pb: { xs: 10, md: 4 },
             minHeight: '100vh',
             background: `linear-gradient(180deg, ${theme.light} 0%, #f8fafc 500px, #f8fafc 100%)`,
             transition: 'background 0.3s ease'
@@ -355,21 +360,29 @@ const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
             <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 justifyContent="space-between"
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-                spacing={1}
-                sx={{ mb: 3 }}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={1.5}
+                sx={{ mb: { xs: 2, md: 3 } }}
             >
                 <Typography
                     variant="h4"
                     sx={{
                         fontWeight: 700,
                         color: theme.primary,
-                        fontSize: { xs: '1.4rem', sm: '1.75rem', md: '2.125rem' },
+                        fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.125rem' },
                     }}
                 >
                     {title}
                 </Typography>
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    sx={{
+                        width: { xs: '100%', sm: 'auto' },
+                        justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                    }}
+                >
                     <Chip
                         icon={<AccountBalanceIcon sx={{ color: `${theme.primary} !important` }} />}
                         label={`Total: ${totalAccounts} accounts`}
@@ -644,9 +657,10 @@ const AccountViewTable: React.FC<Props> = ({ accountType, title }) => {
                 onClose={() => setPrintDialogOpen(false)}
                 maxWidth="lg"
                 fullWidth
+                fullScreen={isMobile}
                 slotProps={{
                     paper: {
-                        sx: { borderRadius: '16px' }
+                        sx: { borderRadius: { xs: 0, sm: '16px' } }
                     }
                 }}
             >
