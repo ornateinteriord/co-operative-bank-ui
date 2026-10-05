@@ -150,11 +150,11 @@ const UserDashboard = () => {
 
   const servicesGrid = [
     { label: "SB Account", icon: <AccountBalanceWalletIcon />, color: "#3b82f6", type: "sb" },
+    { label: "My Passbook", icon: <MenuBookIcon />, color: "#0a2558", route: "/user/passbook" },
     { label: "RD Account", icon: <AutorenewIcon />, color: "#10b981", type: "rd" },
     { label: "FD Account", icon: <NoteAddIcon />, color: "#f59e0b", type: "fd" },
     { label: "CA Account", icon: <AccountBalanceIcon />, color: "#6366f1", type: "ca" },
     { label: "Pigmy Account", icon: <SavingsIcon />, color: "#10b981", type: "pigmy" },
-    { label: "My Passbook", icon: <MenuBookIcon />, color: "#0a2558", route: "/user/passbook" },
     { label: "BMS CREDIT", icon: <CreditCardIcon />, color: "#6366f1" },
     { label: "GOLD LOAN", icon: <MonetizationOnIcon />, color: "#10b981" },
     { label: "Group LOAN", icon: <GroupsIcon />, color: "#3b82f6" },
@@ -214,20 +214,21 @@ const UserDashboard = () => {
 
   const Header = () => (
     <Box sx={{
-      mb: 2,
-      mt: { xs: 2, md: 3 },
+      mb: 2.5,
+      mt: { xs: 1.5, md: 3 },
       background: 'linear-gradient(135deg, #0a2558 0%, #1e3a8a 100%)',
-      p: { xs: 2, md: 3.5 },
-      borderRadius: '28px',
+      p: { xs: 2, sm: 2.5, md: 3.5 },
+      borderRadius: { xs: '22px', md: '28px' },
       color: 'white',
       boxShadow: '0 15px 45px rgba(10, 37, 88, 0.25)',
+      overflow: 'hidden',
     }}>
       {/* Row 1: Avatar + (Name/ID/Wallet Column) */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 }, mb: 2.5 }}>
         <Avatar
           sx={{
-            width: { xs: 62, md: 80 },
-            height: { xs: 62, md: 80 },
+            width: { xs: 58, md: 80 },
+            height: { xs: 58, md: 80 },
             bgcolor: 'rgba(255,255,255,0.15)',
             border: '3px solid rgba(255,255,255,0.3)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
@@ -236,16 +237,16 @@ const UserDashboard = () => {
           }}
           src={memberDetails?.profile_image || ""}
         >
-          {!memberDetails?.profile_image && (memberDetails?.Name?.[0] || <AccountCircleIcon sx={{ fontSize: 36 }} />)}
+          {!memberDetails?.profile_image && (memberDetails?.Name?.[0] || <AccountCircleIcon sx={{ fontSize: { xs: 30, md: 36 } }} />)}
         </Avatar>
 
         {/* Name + ID + Wallet Info Column */}
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.5px', lineHeight: 1.2, mb: 0.5, fontSize: { xs: '1.2rem', md: '1.5rem' } }}>
+          <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.5px', lineHeight: 1.2, mb: 0.5, fontSize: { xs: '1.15rem', md: '1.5rem' } }}>
             {memberDetails?.Name || (isMemberLoading ? '...' : '')}
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, opacity: 0.9, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, opacity: 0.9, mb: 1.25 }}>
             <VerifiedUserIcon sx={{ fontSize: 14, color: '#10b981' }} />
             <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.5px' }}>
               ID: {memberDetails?.Member_id || memberId || ''}
@@ -281,23 +282,34 @@ const UserDashboard = () => {
         </Box>
       </Box>
 
-      {/* Row 2: Buttons + CB icon — all same height */}
-      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'stretch' }}>
+      {/* Row 2: Responsive Action Buttons Grid — Never overflows */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: (isUserActive && isPackageActive) ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)',
+          sm: (isUserActive && isPackageActive) ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
+        },
+        gap: { xs: 1.25, sm: 1.5 },
+      }}>
         {/* MY PASSBOOK — Direct navigation button for all users */}
         <Button
           variant="contained"
           onClick={() => navigate('/user/passbook')}
-          startIcon={<MenuBookIcon sx={{ fontSize: '1.1rem !important' }} />}
+          startIcon={<MenuBookIcon sx={{ fontSize: { xs: '1.05rem !important', sm: '1.15rem !important' } }} />}
           sx={{
-            flex: 1,
+            gridColumn: {
+              xs: (isUserActive && isPackageActive) ? 'span 2' : 'span 1',
+              sm: 'auto'
+            },
             borderRadius: '14px',
             textTransform: 'none',
             fontWeight: 900,
             bgcolor: 'white',
             color: '#0a2558',
-            fontSize: '12.5px',
+            fontSize: { xs: '12.5px', sm: '13px' },
             whiteSpace: 'nowrap',
-            py: 1.1,
+            py: { xs: 1.15, sm: 1.2 },
+            px: { xs: 1.5, sm: 2 },
             minWidth: 0,
             '&:hover': { bgcolor: '#f1f5f9' },
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
@@ -311,17 +323,17 @@ const UserDashboard = () => {
           <Button
             variant="contained"
             onClick={() => navigate('/user/addon-packages?view=fd')}
-            startIcon={<NoteAddIcon sx={{ fontSize: '1rem !important' }} />}
+            startIcon={<NoteAddIcon sx={{ fontSize: { xs: '1rem !important', sm: '1.1rem !important' } }} />}
             sx={{
-              flex: 1,
               borderRadius: '14px',
               textTransform: 'none',
               fontWeight: 900,
               bgcolor: 'white',
               color: '#0a2558',
-              fontSize: '12.5px',
+              fontSize: { xs: '12.5px', sm: '13px' },
               whiteSpace: 'nowrap',
-              py: 1.1,
+              py: { xs: 1.15, sm: 1.2 },
+              px: { xs: 1.5, sm: 2 },
               minWidth: 0,
               '&:hover': { bgcolor: '#f1f5f9' },
               boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
@@ -342,19 +354,21 @@ const UserDashboard = () => {
                 navigate('/user/overdraft');
               }
             }}
-            startIcon={(isPackageActive && showQuickAccess) ? <ArrowBackIcon sx={{ fontSize: '1.2rem !important' }} /> : <SpeedIcon sx={{ fontSize: '1.2rem !important' }} />}
+            startIcon={(isPackageActive && showQuickAccess) ? <ArrowBackIcon sx={{ fontSize: { xs: '1.1rem !important', sm: '1.2rem !important' } }} /> : <SpeedIcon sx={{ fontSize: { xs: '1.1rem !important', sm: '1.2rem !important' } }} />}
             sx={{
-              flex: 1,
               borderRadius: '14px',
               textTransform: 'none',
               fontWeight: 900,
               bgcolor: '#3b82f6',
-              fontSize: '14px',
+              color: 'white',
+              fontSize: { xs: '12.5px', sm: '13px' },
               whiteSpace: 'nowrap',
-              py: 1.1,
+              py: { xs: 1.15, sm: 1.2 },
+              px: { xs: 1.5, sm: 2 },
               minWidth: 0,
               border: '2px solid rgba(255,255,255,0.2)',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              '&:hover': { bgcolor: '#2563eb' }
             }}
           >
             {(isPackageActive && showQuickAccess) ? 'BACK' : 'OVER DRAFT'}
@@ -391,10 +405,10 @@ const UserDashboard = () => {
 
   return (
     <Box sx={{
-      pb: 6,
+      pb: { xs: 10, md: 6 },
       background: '#f4f7f9',
       minHeight: '100vh',
-      px: { xs: 2.5, md: 5, lg: 10, xl: 16 },
+      px: { xs: 2, sm: 3, md: 5, lg: 10, xl: 16 },
       pt: { xs: 1.5, md: 4 }, // Reduced top gap for mobile, more balanced for desktop
       maxWidth: '1800px',
       margin: '0 auto'
@@ -514,20 +528,20 @@ const UserDashboard = () => {
 
           {/* Quick Services Grid */}
           <Box sx={{ mb: 6 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 2, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0a2558', letterSpacing: '0.5px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1.5, mb: 2.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0a2558', letterSpacing: '0.5px', fontSize: { xs: '1.15rem', sm: '1.25rem' } }}>
                 QUICK SERVICES
               </Typography>
               <Box
                 onClick={() => navigate('/user/chat')}
                 sx={{
                   cursor: 'pointer',
-                  width: 90,
-                  height: 60,
+                  width: { xs: 58, sm: 72 },
+                  height: { xs: 38, sm: 46 },
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   bgcolor: 'white',
                   border: '1.5px solid rgba(10,37,88,0.1)',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.07)',
@@ -536,7 +550,7 @@ const UserDashboard = () => {
                   '&:active': { transform: 'scale(0.95)' }
                 }}
               >
-                <img src="/cb.png" alt="BMS Chat" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.4)' }} />
+                <img src="/cb.png" alt="BMS Chat" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
               </Box>
             </Box>
             <Box sx={{
