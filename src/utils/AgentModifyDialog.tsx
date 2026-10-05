@@ -21,11 +21,14 @@ import {
     FormControlLabel,
     Radio,
     FormLabel,
+    InputAdornment,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useGetAgentById } from '../queries/admin/index';
 
 interface AgentFormData {
@@ -38,6 +41,8 @@ interface AgentFormData {
     aadharcard_no: string;
     emailid: string;
     mobile: string;
+    password?: string;
+    role?: string;
     branch_id: string;
     introducer: string;
     introducer_name: string;
@@ -79,6 +84,8 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
         aadharcard_no: '',
         emailid: '',
         mobile: '',
+        password: '',
+        role: 'AGENT',
         branch_id: '',
         introducer: '',
         introducer_name: '',
@@ -87,9 +94,11 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
         entered_by: '',
     });
 
-    // Validation state for contact number
-    const [, setContactError] = useState<string>('');
+    // Validation state
+    const [contactError, setContactError] = useState<string>('');
     const [dobError, setDobError] = useState<string>('');
+    const [passwordError, setPasswordError] = useState<string>('');
+    const [showPassword, setShowPassword] = useState(false);
 
     // Update form data when agent data is fetched
     useEffect(() => {
@@ -105,6 +114,8 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
                 aadharcard_no: agent.aadharcard_no || '',
                 emailid: agent.emailid || '',
                 mobile: agent.mobile || '',
+                password: agent.password || '',
+                role: agent.role || 'AGENT',
                 branch_id: agent.branch_id || '',
                 introducer: agent.introducer || '',
                 introducer_name: '',
@@ -124,6 +135,8 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
                 aadharcard_no: '',
                 emailid: '',
                 mobile: '',
+                password: '',
+                role: 'AGENT',
                 branch_id: '',
                 introducer: '',
                 introducer_name: '',
@@ -131,6 +144,10 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
                 date_of_joining: '',
                 entered_by: '',
             });
+            setPasswordError('');
+            setContactError('');
+            setDobError('');
+            setShowPassword(false);
         }
     }, [agentData, isEditMode, open, isError]);
 
@@ -141,6 +158,12 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
         });
         if (e.target.name === 'dob' && dobError) {
             setDobError('');
+        }
+        if (e.target.name === 'mobile' && contactError) {
+            setContactError('');
+        }
+        if (e.target.name === 'password' && passwordError) {
+            setPasswordError('');
         }
     };
 
@@ -166,7 +189,22 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
         }
         setDobError('');
 
-        onSave(formData, isEditMode);
+        // Validate password for new agents
+        if (!isEditMode) {
+            if (!formData.password || formData.password.trim().length < 4) {
+                setPasswordError('Password is required (minimum 4 characters)');
+                return;
+            }
+        }
+        setPasswordError('');
+
+        const payload: any = { ...formData };
+        // In edit mode, if password wasn't entered, do not overwrite with empty string
+        if (isEditMode && !payload.password) {
+            delete payload.password;
+        }
+
+        onSave(payload, isEditMode);
     };
 
     const isLoading = isFetching || externalLoading;
@@ -335,6 +373,53 @@ const AgentModifyDialog: React.FC<AgentModifyDialogProps> = ({
                                 value={formData.mobile}
                                 onChange={handleChange}
                                 size="small"
+                                error={!!contactError}
+                                helperText={contactError}
+                            />
+                        </Grid>
+
+                        {/* Password */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                required={!isEditMode}
+                                label="Password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={formData.password || ''}
+                                onChange={handleChange}
+                                size="small"
+                                placeholder={isEditMode ? 'Leave blank to keep current' : 'Enter password for login'}
+                                error={!!passwordError}
+                                helperText={passwordError || (isEditMode ? 'Leave blank to keep existing password' : 'Used for agent portal login (min 4 characters)')}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setShowPassword(prev => !prev)}
+                                                edge="end"
+                                                tabIndex={-1}
+                                            >
+                                                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Grid>
+
+                        {/* Role */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="Role"
+                                name="role"
+                                value={formData.role || 'AGENT'}
+                                size="small"
+                                disabled
+                                sx={{ backgroundColor: '#f8fafc' }}
+                                helperText="Default system role: AGENT"
                             />
                         </Grid>
 

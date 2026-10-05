@@ -132,11 +132,11 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                   }}
                 >
-                  {memberDetails?.Name?.charAt(0).toUpperCase() || 'U'}
+                  {memberDetails?.Name?.charAt(0).toUpperCase() || (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
                 </Avatar>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'left' }}>
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 800, lineHeight: 1.1 }}>
-                    {memberDetails?.Name || "Member"}
+                    {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.65rem' }}>
                     {memberDetails?.Member_id || ""}
@@ -177,10 +177,10 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
             >
               {memberDetails?.Name
                 ? memberDetails.Name.charAt(0).toUpperCase()
-                : ""}
+                : (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
             </Avatar>
             <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0a2558' }}>
-              {memberDetails?.Name || "Member"}
+              {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
                ID: {memberDetails?.Member_id || ""}
@@ -189,7 +189,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
 
           <Divider />
 
-          <MenuItem onClick={handleMenuClose}>
+          <MenuItem onClick={() => { handleMenuClose(); if (userRole === "AGENT") { navigate("/agent/profile"); } else if (userRole === "ADMIN" || userRole === "ADMIN_01") { navigate("/admin/dashboard"); } else { navigate("/user/account/profile"); } }}>
             <User size={18} style={{ marginRight: "8px" }} />
             My Profile
           </MenuItem>

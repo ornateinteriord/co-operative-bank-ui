@@ -57,6 +57,8 @@ interface Agent {
   aadharcard_no: string;
   introducer: string;
   branch_id: string;
+  role?: string;
+  password?: string;
 }
 
 const Agents: React.FC = () => {
@@ -553,7 +555,7 @@ const Agents: React.FC = () => {
           onError: (error: any) => {
             setSnackbar({
               open: true,
-              message: error?.message || 'Failed to update agent',
+              message: error?.response?.data?.message || error?.message || 'Failed to update agent',
               severity: 'error'
             });
           }
@@ -562,10 +564,13 @@ const Agents: React.FC = () => {
     } else {
       // Create new agent
       createAgentMutation.mutate(data, {
-        onSuccess: () => {
+        onSuccess: (res: any) => {
+          const newAgentId = res?.data?.agent_id;
           setSnackbar({
             open: true,
-            message: 'Agent created successfully',
+            message: newAgentId
+              ? `Agent created successfully! Agent ID: ${newAgentId}`
+              : 'Agent created successfully',
             severity: 'success'
           });
           setModifyDialogOpen(false);
@@ -573,7 +578,7 @@ const Agents: React.FC = () => {
         onError: (error: any) => {
           setSnackbar({
             open: true,
-            message: error?.message || 'Failed to create agent',
+            message: error?.response?.data?.message || error?.message || 'Failed to create agent',
             severity: 'error'
           });
         }

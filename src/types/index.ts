@@ -165,6 +165,8 @@ export interface Agent {
   name: string;
   agent_id: string;
   status: string;
+  password?: string;
+  role?: string;
   [key: string]: any;
 }
 
@@ -201,3 +203,26 @@ export type ReceiptResponse = BaseResponse<Receipt>;
 export type ReceiptsResponse = BaseResponse<Receipt[]> & { pagination?: Pagination };
 export type PaymentResponse = BaseResponse<Payment>;
 export type PaymentsResponse = BaseResponse<Payment[]> & { pagination?: Pagination };
+
+export interface IntroducerAccount {
+  account_id: string;
+  account_no: string;
+  account_type: string;
+  account_type_name: string;
+  member_id: string;
+  member_name: string;
+  member_mobile: string;
+  date_of_opening: string | Date;
+  date_of_maturity?: string | Date;
+  account_amount: number;
+  interest_rate?: number;
+  duration?: number;
+  status: string;
+  introducer: string;
+}
+
+export type IntroducerAccountsResponse = BaseResponse<{
+  accounts: IntroducerAccount[];
+  loans: IntroducerAccount[];
+  total: number;
+}>;

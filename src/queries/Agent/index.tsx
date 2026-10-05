@@ -1,7 +1,7 @@
 // hooks/useGetAgentById.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useApi from "../useApi";
-import { AgentResponse, AssignedAccount } from "../../types";
+import { AgentResponse, AssignedAccount, IntroducerAccountsResponse } from "../../types";
 
 export const useGetAgentById = (agentId: string, enabled: boolean = true) => {
     return useQuery({
@@ -106,6 +106,20 @@ export const useGetAgentCommissionTransactions = (agentId: string, enabled: bool
                     };
                 };
             }>("GET", `/agent/get-commission-transactions/${agentId}`);
+        },
+        enabled: enabled && !!agentId,
+    });
+};
+
+// Hook to get accounts and loans where this agent is the introducer
+export const useGetIntroducerAccounts = (agentId: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ["introducerAccounts", agentId],
+        queryFn: async () => {
+            return await useApi<IntroducerAccountsResponse['data']>(
+                "GET",
+                `/agent/get-introducer-accounts/${agentId}`
+            );
         },
         enabled: enabled && !!agentId,
     });
