@@ -335,7 +335,7 @@ interface PassbookPdfDocumentProps {
 }
 
 export const PassbookPdfDocument: React.FC<PassbookPdfDocumentProps> = ({ data }) => {
-  const { account, member, branch, bank, summary, pages, all_lines } = data;
+  const { account, member, branch, bank, summary, pages } = data;
   const txPages = pages && pages.length > 0 ? pages : [];
 
   return (
