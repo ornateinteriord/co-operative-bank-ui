@@ -8,7 +8,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import TokenService from '../../queries/token/tokenService';
-import { useGetAgentById, useGetAgentCommissionTransactions } from '../../queries/Agent';
+import { useGetAgentCommissionTransactions } from '../../queries/Agent';
 import WithdrawMoneyDialog from '../../components/Wallet/WithdrawMoneyDialog';
 
 const AgentWallet = () => {
@@ -17,7 +17,6 @@ const AgentWallet = () => {
     const agentId = TokenService.getMemberId() || '';
     const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
 
-    const { data: agentData } = useGetAgentById(agentId);
     const {
         data: transactionsData,
         isLoading: transactionsLoading,
@@ -76,10 +75,6 @@ const AgentWallet = () => {
                 Agent Wallet
             </Typography>
 
-            {/* Welcome Text */}
-            <Typography variant="body1" sx={{ mb: 3, color: '#6b7280' }}>
-                Welcome, {agentData?.data?.name || 'Agent'}. Manage your commission balance and withdrawals here.
-            </Typography>
 
             {/* Balance Section */}
             <Card sx={{
@@ -141,9 +136,7 @@ const AgentWallet = () => {
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#374151' }}>
                 Recent Commission Transactions
             </Typography>
-            <Typography variant="body2" sx={{ mb: 3, color: '#6b7280' }}>
-                Showing commission received and commission withdrawal transactions
-            </Typography>
+
 
             {transactionsLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>

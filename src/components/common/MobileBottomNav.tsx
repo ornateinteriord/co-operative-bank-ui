@@ -329,7 +329,7 @@ const MobileBottomNav: React.FC = () => {
               </Avatar>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0a2558', lineHeight: 1.2 }}>
-                  {memberDetails?.Name || (isAgent ? 'Authorized Agent' : 'Valued Member')}
+                  {memberDetails?.Name || (isAgent ? 'Agent' : 'Member')}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 800 }}>
@@ -366,7 +366,7 @@ const MobileBottomNav: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mt: 1.2 }}>
                   {[
-                    { label: 'My Passbook', icon: <MenuBookIcon />, color: '#0a2558', path: '/user/passbook' },
+                    { label: 'Passbook', icon: <MenuBookIcon />, color: '#0a2558', path: '/user/passbook' },
                     { label: 'SB Account', icon: <AccountBalanceIcon />, color: '#3b82f6', path: '/user/account-opening/sb' },
                     { label: 'RD Account', icon: <NoteAddIcon />, color: '#10b981', path: '/user/account-opening/rd' },
                     { label: 'FD Bond', icon: <NoteAddIcon />, color: '#f59e0b', path: '/user/addon-packages?view=fd' },
@@ -418,7 +418,7 @@ const MobileBottomNav: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mt: 1.2 }}>
                   {[
-                    { label: 'My Loans', icon: <RequestQuoteIcon />, color: '#1e40af', path: '/user/loans' },
+                    { label: 'Loans', icon: <RequestQuoteIcon />, color: '#1e40af', path: '/user/loans' },
                     { label: 'Gold Loan', icon: <MonetizationOnIcon />, color: '#d97706', path: '/user/loans?type=Gold' },
                     { label: 'Pigmi Loan', icon: <MonetizationOnIcon />, color: '#ea580c', path: '/user/loans?type=Pigmi' },
                     { label: 'Loan History', icon: <ReceiptLongIcon />, color: '#3b82f6', path: '/user/loantransactions' },
@@ -466,7 +466,7 @@ const MobileBottomNav: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mt: 1.2 }}>
                   {[
-                    { label: 'My Team', icon: <GroupsIcon />, color: '#3b82f6', path: '/user/team' },
+                    { label: 'Team', icon: <GroupsIcon />, color: '#3b82f6', path: '/user/team' },
                     { label: 'Directs', icon: <PersonAddAltIcon />, color: '#6366f1', path: '/user/team/direct' },
                     { label: 'Tree View', icon: <HubIcon />, color: '#ef4444', path: '/user/team/tree' },
                     { label: 'New Register', icon: <PersonAddAltIcon />, color: '#10b981', path: '/user/team/new-register' },
@@ -514,7 +514,7 @@ const MobileBottomNav: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5, mt: 1.2 }}>
                   {[
-                    { label: 'My Profile', icon: <PersonIcon />, color: '#0a2558', path: '/user/account/profile' },
+                    { label: 'Profile', icon: <PersonIcon />, color: '#0a2558', path: '/user/account/profile' },
                     { label: 'KYC Status', icon: <VerifiedUserIcon />, color: '#10b981', path: '/user/account/kyc' },
                     { label: 'Password', icon: <LockIcon />, color: '#f59e0b', path: '/user/account/change-password' },
                   ].map((item, i) => (
@@ -570,8 +570,8 @@ const MobileBottomNav: React.FC = () => {
                     { label: 'Collections', icon: <ReceiptLongIcon />, color: '#10b981', path: '/agent/collections' },
                     { label: 'Open A/C', icon: <AddCircleIcon />, color: '#3b82f6', path: '/agent/add-new' },
                     { label: 'Reports', icon: <AssessmentIcon />, color: '#f59e0b', path: '/agent/report' },
-                    { label: 'My Wallet', icon: <AccountBalanceWalletIcon />, color: '#8b5cf6', path: '/agent/wallet' },
-                    { label: 'My Profile', icon: <PersonIcon />, color: '#6366f1', path: '/agent/profile' },
+                    { label: 'Wallet', icon: <AccountBalanceWalletIcon />, color: '#8b5cf6', path: '/agent/wallet' },
+                    { label: 'Profile', icon: <PersonIcon />, color: '#6366f1', path: '/agent/profile' },
                   ].map((item, i) => (
                     <Box
                       key={i}

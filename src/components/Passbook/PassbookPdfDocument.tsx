@@ -362,7 +362,7 @@ export const PassbookPdfDocument: React.FC<PassbookPdfDocumentProps> = ({ data }
         {/* Passbook Title Banner */}
         <View style={styles.titleBanner}>
           <Text style={styles.titleText}>
-            {account.is_loan ? "OFFICIAL LOAN PASSBOOK" : "OFFICIAL SAVINGS PASSBOOK"}
+            {account.is_loan ? "LOAN PASSBOOK" : "SAVINGS PASSBOOK"}
           </Text>
           <Text style={styles.titleAcc}>A/C: {account.account_no}</Text>
         </View>

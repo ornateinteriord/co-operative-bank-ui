@@ -33,10 +33,10 @@ const Overdraft = () => {
           gap: 2
         }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#475569' }}>
-            Coming Soon
+            Facility Not Active
           </Typography>
-          <Typography variant="body2" sx={{ textAlign: 'center', color: '#94a3b8' }}>
-            We are working hard to bring you the best overdraft experience. Stay tuned!
+          <Typography variant="body2" sx={{ textAlign: 'center', color: '#64748b' }}>
+            Overdraft facility is not enabled for this account. Please visit your branch to check eligibility and submit an application.
           </Typography>
         </Box>
       </Paper>

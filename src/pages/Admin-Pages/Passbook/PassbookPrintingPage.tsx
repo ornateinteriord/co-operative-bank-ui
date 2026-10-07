@@ -100,14 +100,11 @@ export const PassbookPrintingPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold font-serif tracking-wide text-white">
-                  Passbook Printing & Verification
+                  Passbook Printing
                 </h1>
-                <span className="text-xs bg-amber-500/20 border border-amber-400/40 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full">
-                  Admin01
-                </span>
               </div>
               <p className="text-xs md:text-sm text-slate-300 mt-1">
-                Official physical passbook ledger, 3D interactive viewer, and real-time print status tracking
+                Account ledger search, passbook printing, and print line tracking.
               </p>
             </div>
           </div>
@@ -250,10 +247,7 @@ export const PassbookPrintingPage: React.FC = () => {
         isLoadingPassbook ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-16 flex flex-col items-center justify-center text-slate-500 shadow-sm">
             <RotateCcw className="w-8 h-8 animate-spin text-amber-500 mb-3" />
-            <div className="text-sm font-semibold">Generating Passbook Ledger...</div>
-            <div className="text-xs text-slate-400 mt-1">
-              Calculating running balances and page layout
-            </div>
+            <div className="text-sm font-semibold">Loading passbook...</div>
           </div>
         ) : isPassbookError ? (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-red-700">
@@ -278,7 +272,7 @@ export const PassbookPrintingPage: React.FC = () => {
             No Account Selected
           </div>
           <div className="text-xs text-slate-400 mt-1">
-            Search and select an account above to inspect and print its passbook.
+            Search and select an account above to view and print passbook.
           </div>
         </div>
       )}

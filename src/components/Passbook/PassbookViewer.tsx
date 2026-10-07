@@ -14,6 +14,10 @@ import {
   Info,
   Download,
   Loader2,
+  Clock,
+  Search,
+  X,
+  FileText,
 } from "lucide-react";
 import { pdf } from "@react-pdf/renderer";
 import PassbookPdfDocument from "./PassbookPdfDocument";
@@ -70,7 +74,113 @@ export const PassbookViewer: React.FC<PassbookViewerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showMarkPrintedDialog, setShowMarkPrintedDialog] = useState<boolean>(false);
   const [selectedPrintLine, setSelectedPrintLine] = useState<number>(all_lines.length);
+  const [selectedLineNumbers, setSelectedLineNumbers] = useState<Set<number>>(new Set());
+  const [dialogFilter, setDialogFilter] = useState<'all' | 'unprinted' | 'printed' | 'selected'>('all');
+  const [dialogSearchQuery, setDialogSearchQuery] = useState<string>('');
   const [printNotes, setPrintNotes] = useState<string>("");
+
+  // Computed line counts
+  const printedLinesCount = all_lines.filter(l => l.line_number <= account.last_printed_line).length;
+  const unprintedLinesCount = all_lines.filter(l => l.line_number > account.last_printed_line).length;
+
+  const handleOpenPrintDialog = () => {
+    // Select all lines up to the end by default so user can easily mark all unprinted
+    const lineSet = new Set<number>();
+    all_lines.forEach(l => lineSet.add(l.line_number));
+    setSelectedLineNumbers(lineSet);
+    setSelectedPrintLine(all_lines.length);
+    setDialogFilter('all');
+    setDialogSearchQuery('');
+    setPrintNotes(account.passbook_notes || '');
+    setShowMarkPrintedDialog(true);
+  };
+
+  const handleToggleLineSelection = (lineNum: number) => {
+    const updated = new Set(selectedLineNumbers);
+    if (updated.has(lineNum)) {
+      updated.delete(lineNum);
+    } else {
+      updated.add(lineNum);
+    }
+    setSelectedLineNumbers(updated);
+    if (updated.size > 0) {
+      setSelectedPrintLine(Math.max(...Array.from(updated)));
+    } else {
+      setSelectedPrintLine(0);
+    }
+  };
+
+  const handleSelectUpToLine = (lineNum: number) => {
+    const updated = new Set<number>();
+    for (let i = 1; i <= lineNum; i++) {
+      updated.add(i);
+    }
+    setSelectedLineNumbers(updated);
+    setSelectedPrintLine(lineNum);
+  };
+
+  const handleSelectAllUnprinted = () => {
+    const updated = new Set<number>();
+    for (let i = 1; i <= all_lines.length; i++) {
+      updated.add(i);
+    }
+    setSelectedLineNumbers(updated);
+    setSelectedPrintLine(all_lines.length);
+    setDialogFilter('unprinted');
+  };
+
+  const handleSelectAllLines = () => {
+    const updated = new Set<number>(all_lines.map(l => l.line_number));
+    setSelectedLineNumbers(updated);
+    setSelectedPrintLine(all_lines.length);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedLineNumbers(new Set());
+    setSelectedPrintLine(account.last_printed_line);
+  };
+
+  const handleResetToZero = () => {
+    setSelectedLineNumbers(new Set());
+    setSelectedPrintLine(0);
+  };
+
+  const filteredModalLines = all_lines.filter((line) => {
+    const isPrinted = line.line_number <= account.last_printed_line;
+    const isSelected = selectedLineNumbers.has(line.line_number);
+
+    if (dialogFilter === 'unprinted' && isPrinted) return false;
+    if (dialogFilter === 'printed' && !isPrinted) return false;
+    if (dialogFilter === 'selected' && !isSelected) return false;
+
+    if (dialogSearchQuery.trim()) {
+      const q = dialogSearchQuery.toLowerCase().trim();
+      const matchPart = (line.particulars || '').toLowerCase().includes(q);
+      const matchDate = (line.date || '').toLowerCase().includes(q);
+      const matchRef = (line.reference_no || '').toLowerCase().includes(q);
+      const matchLine = line.line_number.toString().includes(q);
+      if (!matchPart && !matchDate && !matchRef && !matchLine) return false;
+    }
+
+    return true;
+  });
+
+  const allVisibleSelected = filteredModalLines.length > 0 && filteredModalLines.every(l => selectedLineNumbers.has(l.line_number));
+
+  const handleToggleAllVisible = () => {
+    const updated = new Set(selectedLineNumbers);
+    if (allVisibleSelected) {
+      filteredModalLines.forEach(l => updated.delete(l.line_number));
+    } else {
+      filteredModalLines.forEach(l => updated.add(l.line_number));
+    }
+    setSelectedLineNumbers(updated);
+    if (updated.size > 0) {
+      setSelectedPrintLine(Math.max(...Array.from(updated)));
+    } else {
+      setSelectedPrintLine(0);
+    }
+  };
 
   // Track window width for dynamic responsive sizing & portrait mode on mobile
   const [windowWidth, setWindowWidth] = useState<number>(
@@ -319,7 +429,7 @@ export const PassbookViewer: React.FC<PassbookViewerProps> = ({
             onClick={handlePrintPdf}
             disabled={isGeneratingPdf}
             className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-60"
-            title="Generate & Print Official Bank Passbook PDF (without sidebar)"
+            title="Print Passbook (PDF)"
           >
             {isGeneratingPdf ? (
               <>
@@ -340,7 +450,7 @@ export const PassbookViewer: React.FC<PassbookViewerProps> = ({
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
             className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-60"
-            title="Download Official Passbook PDF"
+            title="Download PDF"
           >
             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Download PDF</span>
@@ -349,10 +459,7 @@ export const PassbookViewer: React.FC<PassbookViewerProps> = ({
           {/* Admin Mark as Printed */}
           {isAdmin && (
             <button
-              onClick={() => {
-                setSelectedPrintLine(all_lines.length);
-                setShowMarkPrintedDialog(true);
-              }}
+              onClick={handleOpenPrintDialog}
               className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs shadow transition-all active:scale-95"
               title="Update last printed line"
             >
@@ -979,84 +1086,352 @@ export const PassbookViewer: React.FC<PassbookViewerProps> = ({
         </div>
       </div>
 
-      {/* ── ADMIN MARK AS PRINTED MODAL ── */}
+      {/* ── ADMIN MARK AS PRINTED MODAL (EXPANDED MULTI-LINE PRINT MANAGER) ── */}
       {showMarkPrintedDialog && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200">
-            <div className="flex items-center gap-2 text-indigo-900 font-bold text-lg mb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span>Update Passbook Print Status</span>
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/75 backdrop-blur-md p-2 sm:p-4 md:p-6 overflow-hidden">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 flex flex-col h-[92vh] max-h-[850px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                  <Printer className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold font-serif tracking-wide text-white">
+                      Passbook Print Status
+                    </h2>
+                    <span className="text-[10px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      A/C: {account.account_no}
+                    </span>
+                    <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                      {account.account_type_name || (account.is_loan ? "Loan" : "Savings")}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {member.name} • Select lines to update passbook print status
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMarkPrintedDialog(false)}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all"
+                title="Close modal (Esc)"
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-              Record that this passbook has been physically printed up to the selected line.
-              Subsequent print jobs will start from the next unprinted line.
-            </p>
+            {/* Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border-b border-slate-200 shrink-0">
+              <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-sm">
+                <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase">Total Entries</div>
+                <div className="text-sm sm:text-lg font-black text-slate-900 mt-0.5">
+                  {all_lines.length} <span className="text-xs font-medium text-slate-400">entries</span>
+                </div>
+              </div>
+              <div className="p-2.5 sm:p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80 shadow-sm">
+                <div className="text-[10px] sm:text-[11px] font-bold text-emerald-800 uppercase flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Last Printed</span>
+                </div>
+                <div className="text-sm sm:text-lg font-black text-emerald-950 mt-0.5">
+                  Line {account.last_printed_line} <span className="text-xs font-medium text-emerald-700">/ {all_lines.length}</span>
+                </div>
+              </div>
+              <div className="p-2.5 sm:p-3 bg-amber-50/70 rounded-xl border border-amber-200/80 shadow-sm">
+                <div className="text-[10px] sm:text-[11px] font-bold text-amber-800 uppercase flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Pending Lines</span>
+                </div>
+                <div className="text-sm sm:text-lg font-black text-amber-950 mt-0.5">
+                  {unprintedLinesCount} <span className="text-xs font-medium text-amber-700">lines</span>
+                </div>
+              </div>
+              <div className="p-2.5 sm:p-3 bg-indigo-50/70 rounded-xl border border-indigo-200/80 shadow-sm">
+                <div className="text-[10px] sm:text-[11px] font-bold text-indigo-800 uppercase flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Selected Mark</span>
+                </div>
+                <div className="text-sm sm:text-lg font-black text-indigo-950 mt-0.5">
+                  Line {selectedPrintLine} <span className="text-xs font-medium text-indigo-700">({selectedLineNumbers.size} sel)</span>
+                </div>
+              </div>
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Mark Printed Up To Line
-                </label>
-                <select
-                  value={selectedPrintLine}
-                  onChange={(e) => setSelectedPrintLine(Number(e.target.value))}
-                  className="w-full border border-slate-300 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-amber-500 outline-none"
+            {/* Toolbar (Filters, Search, Bulk Actions) */}
+            <div className="p-3 sm:p-4 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+              {/* Filter tabs */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+                <button
+                  onClick={() => setDialogFilter('all')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all ${dialogFilter === 'all' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'hover:text-slate-900'}`}
                 >
-                  {all_lines.map((l) => (
-                    <option key={l.line_number} value={l.line_number}>
-                      Line {l.line_number}: {l.date} - {l.particulars} (Bal: ₹{fmtCurrency(l.balance)})
-                    </option>
-                  ))}
-                </select>
+                  All ({all_lines.length})
+                </button>
+                <button
+                  onClick={() => setDialogFilter('unprinted')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${dialogFilter === 'unprinted' ? 'bg-white text-amber-700 shadow-sm font-bold' : 'hover:text-amber-700'}`}
+                >
+                  <span>Pending</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-[10px] text-amber-800">{unprintedLinesCount}</span>
+                </button>
+                <button
+                  onClick={() => setDialogFilter('printed')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${dialogFilter === 'printed' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'hover:text-emerald-700'}`}
+                >
+                  <span>Printed</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-[10px] text-emerald-800">{printedLinesCount}</span>
+                </button>
+                <button
+                  onClick={() => setDialogFilter('selected')}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${dialogFilter === 'selected' ? 'bg-white text-indigo-700 shadow-sm font-bold' : 'hover:text-indigo-700'}`}
+                >
+                  <span>Selected</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-indigo-100 text-[10px] text-indigo-800">{selectedLineNumbers.size}</span>
+                </button>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
-                  Print Notes / Officer Initials (Optional)
-                </label>
+              {/* Search Box */}
+              <div className="relative min-w-[180px] sm:min-w-[240px] flex-1 sm:max-w-xs">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search particulars, date, ref..."
+                  value={dialogSearchQuery}
+                  onChange={(e) => setDialogSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+                {dialogSearchQuery && (
+                  <button
+                    onClick={() => setDialogSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={handleSelectAllUnprinted}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1 transition-all active:scale-95"
+                  title="Select all pending lines"
+                >
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Select Pending</span>
+                </button>
+                <button
+                  onClick={handleSelectAllLines}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all active:scale-95"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleDeselectAll}
+                  className="px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleResetToZero}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 flex items-center gap-1 transition-all active:scale-95"
+                  title="Reset last printed line to 0 (for passbook re-issue / full reprint)"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset to 0</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Table */}
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 bg-white">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="sticky top-0 bg-slate-100 text-slate-700 font-bold z-10 border-b border-slate-200 shadow-sm">
+                  <tr>
+                    <th className="p-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={handleToggleAllVisible}
+                        className="rounded text-amber-600 focus:ring-amber-500 cursor-pointer w-4 h-4"
+                        title="Toggle selection for all visible lines"
+                      />
+                    </th>
+                    <th className="p-3 w-16 text-center">Line #</th>
+                    <th className="p-3 w-28">Status</th>
+                    <th className="p-3 w-24">Date</th>
+                    <th className="p-3">Particulars</th>
+                    <th className="p-3 w-24 text-right">Debit (Dr)</th>
+                    <th className="p-3 w-24 text-right">Credit (Cr)</th>
+                    <th className="p-3 w-28 text-right">Balance</th>
+                    <th className="p-3 w-28 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredModalLines.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="p-12 text-center text-slate-400">
+                        <FileText className="w-10 h-10 mx-auto mb-2 opacity-40 text-slate-400" />
+                        <div className="font-semibold text-slate-600">No matching lines found</div>
+                        <div className="text-xs text-slate-400 mt-0.5">Try adjusting your filter or search query</div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredModalLines.map((line) => {
+                      const isPrinted = line.line_number <= account.last_printed_line;
+                      const isSelected = selectedLineNumbers.has(line.line_number);
+
+                      return (
+                        <tr
+                          key={line.line_number}
+                          onClick={() => handleToggleLineSelection(line.line_number)}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-50/60 hover:bg-indigo-50'
+                              : isPrinted
+                                ? 'bg-emerald-50/30 hover:bg-emerald-50/50'
+                                : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleLineSelection(line.line_number)}
+                              className="rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer w-4 h-4"
+                            />
+                          </td>
+                          <td className="p-3 text-center font-mono font-bold text-slate-600">
+                            #{line.line_number}
+                          </td>
+                          <td className="p-3">
+                            {isPrinted ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Printed</span>
+                              </span>
+                            ) : isSelected ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                <CheckCircle2 className="w-3 h-3 text-indigo-600" />
+                                <span>Marked</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                <Clock className="w-3 h-3 text-amber-600" />
+                                <span>Pending</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 font-mono text-slate-600 whitespace-nowrap">
+                            {line.date}
+                          </td>
+                          <td className="p-3 font-mono">
+                            <div className="font-semibold text-slate-900 leading-tight">
+                              {line.particulars}
+                            </div>
+                            {line.reference_no && line.reference_no !== '-' && (
+                              <span className="text-[10px] text-slate-500 font-sans mt-0.5 inline-block">
+                                Ref: {line.reference_no}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-red-600">
+                            {line.debit > 0 ? `₹${fmtCurrency(line.debit)}` : '-'}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-emerald-600">
+                            {line.credit > 0 ? `₹${fmtCurrency(line.credit)}` : '-'}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-slate-900">
+                            ₹{fmtCurrency(line.balance)}
+                          </td>
+                          <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleSelectUpToLine(line.line_number)}
+                              className="px-2 py-1 rounded-md text-[11px] font-semibold bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 transition-colors whitespace-nowrap"
+                              title={`Set mark up to Line #${line.line_number}`}
+                            >
+                              Mark up to here
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer with Notes, Summary Pill & Actions */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
+              <div className="flex-1 max-w-lg space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Print Notes / Officer Initials (Optional):</span>
+                </div>
                 <input
                   type="text"
                   value={printNotes}
                   onChange={(e) => setPrintNotes(e.target.value)}
                   placeholder="e.g. Printed on passbook printer #2 by Officer ADM"
-                  className="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full border border-slate-300 rounded-xl px-3 py-1.5 sm:py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none bg-white shadow-sm"
                 />
+                <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>
+                    Current record: Last printed is <strong>Line {account.last_printed_line}</strong>.
+                    {selectedPrintLine !== account.last_printed_line ? (
+                      <span className="text-indigo-700 font-bold ml-1">
+                        New setting will be Line {selectedPrintLine} (
+                        {selectedPrintLine > account.last_printed_line
+                          ? `+${selectedPrintLine - account.last_printed_line} newly marked lines`
+                          : `reset backwards to Line ${selectedPrintLine}`}
+                        ).
+                      </span>
+                    ) : (
+                      <span className="ml-1 text-slate-500">Setting remains at Line {selectedPrintLine}.</span>
+                    )}
+                  </span>
+                </div>
               </div>
 
-              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-                <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                <span>
-                  Current record: Last printed line is <strong>{account.last_printed_line}</strong>.
-                  New setting will be <strong>{selectedPrintLine}</strong>.
-                </span>
-              </div>
-            </div>
+              <div className="flex items-center justify-end gap-2 shrink-0">
+                <button
+                  onClick={() => setShowMarkPrintedDialog(false)}
+                  className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
 
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowMarkPrintedDialog(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSavePrintStatus}
-                disabled={isUpdatingStatus}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md flex items-center gap-1.5"
-              >
-                {isUpdatingStatus ? (
-                  <>
-                    <RotateCcw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Save Print Status</span>
-                  </>
-                )}
-              </button>
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf}
+                  className="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-60"
+                  title="Download PDF"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </button>
+
+                <button
+                  onClick={handleSavePrintStatus}
+                  disabled={isUpdatingStatus}
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-600/20 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-60"
+                >
+                  {isUpdatingStatus ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Save Print Status</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

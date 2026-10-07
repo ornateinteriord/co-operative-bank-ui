@@ -207,7 +207,7 @@ const AgentDashboard = () => {
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.15rem', lineHeight: 1.2, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {agentData?.data?.name || 'Authorized Agent'}
+                {agentData?.data?.name || 'Agent'}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
@@ -390,7 +390,7 @@ const AgentDashboard = () => {
                         {type} Accounts
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
-                        Tap to collect payments
+                        View accounts
                       </Typography>
                     </Box>
                   </Box>
@@ -615,7 +615,7 @@ const AgentDashboard = () => {
                       {type}
                     </Typography>
                     <Typography sx={{ fontSize: '0.875rem', opacity: 0.9 }}>
-                      Click to view & collect
+                      View accounts
                     </Typography>
                   </CardContent>
                 </Card>

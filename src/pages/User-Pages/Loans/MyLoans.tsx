@@ -386,7 +386,7 @@ const MyLoans: React.FC = () => {
               display: { xs: 'none', sm: 'block' },
             }}
           >
-            Co-operative Banking Loans Portal
+            Loan Accounts
           </Typography>
         </Box>
       </Box>
@@ -429,7 +429,7 @@ const MyLoans: React.FC = () => {
                 lineHeight: 1.15,
               }}
             >
-              My Loans & Advances
+              Loans & Advances
             </Typography>
             <Typography
               variant="body2"
@@ -440,7 +440,7 @@ const MyLoans: React.FC = () => {
                 mt: 0.3,
               }}
             >
-              Approved bank loans, outstanding balances & EMI schedules
+              Active loans, outstanding balances, and EMI schedules
             </Typography>
           </Box>
         </Box>

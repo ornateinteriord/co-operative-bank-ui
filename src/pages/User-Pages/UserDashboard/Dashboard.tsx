@@ -150,7 +150,7 @@ const UserDashboard = () => {
 
   const servicesGrid = [
     { label: "SB Account", icon: <AccountBalanceWalletIcon />, color: "#3b82f6", type: "sb" },
-    { label: "My Passbook", icon: <MenuBookIcon />, color: "#0a2558", route: "/user/passbook" },
+    { label: "Passbook", icon: <MenuBookIcon />, color: "#0a2558", route: "/user/passbook" },
     { label: "RD Account", icon: <AutorenewIcon />, color: "#10b981", type: "rd" },
     { label: "FD Account", icon: <NoteAddIcon />, color: "#f59e0b", type: "fd" },
     { label: "CA Account", icon: <AccountBalanceIcon />, color: "#6366f1", type: "ca" },
@@ -164,7 +164,7 @@ const UserDashboard = () => {
     { label: "E Shopy Product", icon: <ShoppingCartIcon />, color: "#f59e0b" },
     { label: "Hurb Product", icon: <StoreIcon />, color: "#3b82f6" },
     { label: "TV", icon: <TvIcon />, color: "#ef4444" },
-    { label: "Shoping", icon: <ShoppingCartIcon />, color: "#3b82f6" },
+    { label: "Shopping", icon: <ShoppingCartIcon />, color: "#3b82f6" },
     { label: "Gold Saving", icon: <SavingsIcon />, color: "#f59e0b" },
     { label: "Pigmy Saving", icon: <SavingsIcon />, color: "#10b981" },
     { label: "Pigmy Loan", icon: <CurrencyRupeeIcon />, color: "#ef4444" },
@@ -176,7 +176,7 @@ const UserDashboard = () => {
     {
       title: "ACCOUNT",
       items: [
-        { label: "My Passbook", icon: <MenuBookIcon />, route: "/user/passbook", color: "#0a2558" },
+        { label: "Passbook", icon: <MenuBookIcon />, route: "/user/passbook", color: "#0a2558" },
         { label: "Profile", icon: <AccountCircleIcon />, route: "/user/account/profile", color: "#3b82f6" },
         { label: "KYC", icon: <VerifiedUserIcon />, route: "/user/account/kyc", color: "#10b981" },
         { label: "Password", icon: <LockIcon />, route: "/user/account/change-password", color: "#f59e0b" },
@@ -195,8 +195,8 @@ const UserDashboard = () => {
     {
       title: "TEAM & TOOLS",
       items: [
-        { label: "My Team", icon: <GroupsIcon />, route: "/user/team", color: "#3b82f6" },
-        { label: "My Directs", icon: <PersonAddAltIcon />, route: "/user/team/direct", color: "#6366f1" },
+        { label: "Team", icon: <GroupsIcon />, route: "/user/team", color: "#3b82f6" },
+        { label: "Directs", icon: <PersonAddAltIcon />, route: "/user/team/direct", color: "#6366f1" },
         { label: "Tree View", icon: <HubIcon />, route: "/user/team/tree", color: "#ef4444" },
         { label: "New Regi.", icon: <PersonAddAltIcon />, route: "/user/team/new-register", color: "#10b981" },
       ]
@@ -204,7 +204,7 @@ const UserDashboard = () => {
     {
       title: "LOANS & ADVANCES",
       items: [
-        { label: "My Loans", icon: <RequestQuoteIcon />, route: "/user/loans", color: "#1e40af" },
+        { label: "Loans", icon: <RequestQuoteIcon />, route: "/user/loans", color: "#1e40af" },
         { label: "Gold Loan", icon: <MonetizationOnIcon />, route: "/user/loans?type=Gold", color: "#d97706" },
         { label: "Pigmi Loan", icon: <CurrencyRupeeIcon />, route: "/user/loans?type=Pigmi", color: "#ea580c" },
         { label: "Loan History", icon: <ReceiptLongIcon />, route: "/user/loantransactions", color: "#3b82f6" },
@@ -315,7 +315,7 @@ const UserDashboard = () => {
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}
         >
-          MY PASSBOOK
+          Passbook
         </Button>
 
         {/* FD BOND — Visible if user is active */}
@@ -339,7 +339,7 @@ const UserDashboard = () => {
               boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
             }}
           >
-            FD BOND
+            FD Bond
           </Button>
         )}
 
@@ -371,7 +371,7 @@ const UserDashboard = () => {
               '&:hover': { bgcolor: '#2563eb' }
             }}
           >
-            {(isPackageActive && showQuickAccess) ? 'BACK' : 'OVER DRAFT'}
+            {(isPackageActive && showQuickAccess) ? 'Back' : 'Overdraft'}
           </Button>
         )}
 
@@ -384,7 +384,7 @@ const UserDashboard = () => {
       navigate(item.route);
       return;
     }
-    if (item.label === 'My Passbook') {
+    if (item.label === 'My Passbook' || item.label === 'Passbook') {
       navigate('/user/passbook');
       return;
     }
@@ -491,7 +491,7 @@ const UserDashboard = () => {
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
-                      Active Loan Obligations
+                      Active Loans
                     </Typography>
                     <Chip
                       label={`${activeLoansCount} Active`}
@@ -521,7 +521,7 @@ const UserDashboard = () => {
                   '&:hover': { bgcolor: '#f8fafc' },
                 }}
               >
-                View My Loans
+                View Loans
               </Button>
             </Paper>
           )}

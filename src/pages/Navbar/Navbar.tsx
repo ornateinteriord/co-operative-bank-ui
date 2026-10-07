@@ -73,22 +73,22 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
     location.pathname === "/";
 
   const getMobileTitle = (path: string) => {
-    if (path.includes('/passbook')) return 'My Passbook';
-    if (path.includes('/wallet')) return isAgent ? 'Agent Wallet' : 'My Wallet';
-    if (path.includes('/collections')) return 'Daily Collections';
-    if (path.includes('/add-new')) return 'Account Opening';
-    if (path.includes('/report')) return 'Collection Reports';
+    if (path.includes('/passbook')) return 'Passbook';
+    if (path.includes('/wallet')) return isAgent ? 'Agent Wallet' : 'Wallet';
+    if (path.includes('/collections')) return 'Collections';
+    if (path.includes('/add-new')) return 'Open Account';
+    if (path.includes('/report')) return 'Reports';
     if (path.includes('/account/profile') || path.includes('/agent/profile')) return 'Profile';
     if (path.includes('/account/kyc')) return 'KYC Documents';
     if (path.includes('/account/change-password')) return 'Change Password';
-    if (path.includes('/loans')) return 'Loans & Advances';
-    if (path.includes('/team')) return 'My Team Network';
+    if (path.includes('/loans')) return 'Loans';
+    if (path.includes('/team')) return 'Team';
     if (path.includes('/transactions')) return 'Transactions';
     if (path.includes('/addon-packages')) return 'Deposit Bonds';
-    if (path.includes('/earnings')) return 'ROI & Benefits';
+    if (path.includes('/earnings')) return 'Benefits';
     if (path.includes('/overdraft')) return 'Overdraft';
     if (path.includes('/account-opening')) return 'Open Account';
-    if (path.includes('/chat')) return 'Live Support';
+    if (path.includes('/chat')) return 'Support';
     return 'BMS';
   };
 
