@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import "./index.css";
-import { CircularProgress, Box, Typography } from "@mui/material";
+import { CircularProgress, Box, Typography, useMediaQuery } from "@mui/material";
 
 import Members, {
   ActiveMembers,
@@ -303,10 +303,17 @@ const RoutesProvider = ({
   const shouldShowFooter = ShouldShowFooter();
   // On public/auth pages, navbar is hidden — content takes full screen with no offset
   const { isLoggedIn, userRole } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 899px)');
   const isAdmin = userRole === "ADMIN";
   const isAgent = userRole === "AGENT";
   const isAdmin01 = userRole === "ADMIN_01";
-  const showSidebar = isAdmin || isAgent || isAdmin01;
+  const isMemberOrAgent = userRole === "USER" || userRole === "AGENT";
+
+  // Desktop screen UI: keep desktop UI current existing one only (Admin, Admin01, Agent have desktop sidebar)
+  // Mobile screen UI: NO sidebar for Member or Agent on mobile screens!
+  const showSidebar = isMobile
+    ? (isAdmin || isAdmin01)
+    : (isAdmin || isAgent || isAdmin01);
 
   return (
     <>
@@ -343,7 +350,7 @@ const RoutesProvider = ({
             minHeight: "100vh",
             // No padding offset when navbar is hidden (public pages)
             paddingTop: hideNavbar ? "0" : (!hideSidebar ? (window.innerWidth < 900 ? "56px" : "64px") : "0"),
-            paddingBottom: !isAdmin && isLoggedIn ? "10px" : "0"
+            paddingBottom: (isMemberOrAgent && isLoggedIn && isMobile) ? "76px" : "0"
           }}
         >
           <Suspense fallback={<PageContentLoader />}>
@@ -652,7 +659,7 @@ const RoutesProvider = ({
           {hideSidebar && shouldShowFooter && <Footer />}
         </div>
       </div>
-      {!isAdmin && isLoggedIn && <MobileBottomNav />}
+      {isMemberOrAgent && isLoggedIn && isMobile && <MobileBottomNav />}
     </>
   );
 };

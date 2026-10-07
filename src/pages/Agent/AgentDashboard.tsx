@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Avatar, Button, Grid, Box, CircularProgress, Chip, Container, Stack, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Card, CardContent, Typography, Avatar, Button, Grid, Box, CircularProgress, Chip, Container, Stack, Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -9,6 +9,9 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CollectionsIcon from '@mui/icons-material/Collections';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import TokenService from '../../queries/token/tokenService';
 import { useGetAssignedAccounts, useGetCollectionTransactions, useGetAgentById, useGetAgentCommissionTransactions, useGetIntroducerAccounts } from '../../queries/Agent';
 import AgentWalletCard from '../../components/Dashboard/AgentWalletCard';
@@ -141,11 +144,21 @@ const AgentDashboard = () => {
   // Get commission balance from commission transactions summary
   const totalBalance = commissionData?.data?.summary?.availableBalance || 0;
 
-  // Get collection balance from transactions data (API returns data as an array)
-  const collectionTransactions = transactionsData?.data || [];
-  const totalCollected = Array.isArray(collectionTransactions) ? collectionTransactions.reduce((sum: number, tx: any) => sum + (tx.credit || 0), 0) : 0;
-  const totalPaid = Array.isArray(collectionTransactions) ? collectionTransactions.reduce((sum: number, tx: any) => sum + (tx.debit || 0), 0) : 0;
-  const netCollectedAmount = totalCollected - totalPaid;
+  // Get collection balance from transactions data (handles both array and { transactions: [], summary: {} } formats)
+  const rawCollectionData = transactionsData?.data;
+  const collectionTransactions: any[] = Array.isArray(rawCollectionData)
+    ? rawCollectionData
+    : Array.isArray((rawCollectionData as any)?.transactions)
+      ? (rawCollectionData as any).transactions
+      : [];
+
+  const totalCollected = (rawCollectionData as any)?.summary?.totalCollected ?? (
+    collectionTransactions.reduce((sum: number, tx: any) => sum + (Number(tx.credit) || 0), 0)
+  );
+  const totalPaid = (rawCollectionData as any)?.summary?.totalPaid ?? (
+    collectionTransactions.reduce((sum: number, tx: any) => sum + (Number(tx.debit) || 0), 0)
+  );
+  const netCollectedAmount = (rawCollectionData as any)?.summary?.netCollectedAmount ?? (totalCollected - totalPaid);
 
   // Introducer data
   const introducerAccounts: IntroducerAccount[] = (introducerData as any)?.accounts || [];
@@ -162,8 +175,308 @@ const AgentDashboard = () => {
     return acc;
   }, {}) || {};
 
+  const isMobile = useMediaQuery('(max-width: 899px)');
+
+  // ─── NATIVE MOBILE APP VIEW FOR AGENT ───
+  if (isMobile) {
+    return (
+      <Box sx={{ px: 2, pt: 1.5, pb: 10, background: '#f8fafc', minHeight: '100vh' }}>
+        {/* Mobile Header Card */}
+        <Box sx={{
+          background: 'linear-gradient(135deg, #0a2558 0%, #1e3a8a 100%)',
+          borderRadius: '24px',
+          p: 2.5,
+          color: 'white',
+          boxShadow: '0 12px 35px rgba(10, 37, 88, 0.25)',
+          mb: 2.5,
+        }}>
+          {/* Row 1: Avatar + Name + Agent ID */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+            <Avatar
+              sx={{
+                width: 52,
+                height: 52,
+                bgcolor: 'rgba(255,255,255,0.15)',
+                color: '#FFC000',
+                border: '2px solid rgba(255,255,255,0.3)',
+                fontWeight: 900,
+                fontSize: '1.25rem'
+              }}
+            >
+              {agentData?.data?.name?.[0] || 'A'}
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.15rem', lineHeight: 1.2, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {agentData?.data?.name || 'Authorized Agent'}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 0.3 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
+                  ID: {agentId}
+                </Typography>
+                <Chip
+                  label="Field Agent"
+                  size="small"
+                  sx={{ height: 18, fontSize: '0.6rem', fontWeight: 800, bgcolor: 'rgba(16,185,129,0.25)', color: '#6ee7b7', border: '1px solid rgba(255,255,255,0.15)' }}
+                />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Row 2: 2 Balance Cards (Collection Balance + Commission Wallet) */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            {/* Collection Balance */}
+            <Box
+              onClick={() => navigate('/agent/collections')}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                p: 1.5,
+                border: '1px solid rgba(255,255,255,0.15)',
+                cursor: 'pointer',
+                '&:active': { transform: 'scale(0.97)' },
+                transition: 'transform 0.2s',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 700, fontSize: '0.68rem', display: 'block' }}>
+                Collection Balance
+              </Typography>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#34d399', mt: 0.3 }}>
+                ₹{netCollectedAmount.toFixed(0)}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.62rem', fontWeight: 600 }}>
+                {accountsData?.data?.length || 0} Accounts Assigned
+              </Typography>
+            </Box>
+
+            {/* Wallet Balance */}
+            <Box
+              onClick={() => navigate('/agent/wallet')}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                p: 1.5,
+                border: '1px solid rgba(255,255,255,0.15)',
+                cursor: 'pointer',
+                '&:active': { transform: 'scale(0.97)' },
+                transition: 'transform 0.2s',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 700, fontSize: '0.68rem', display: 'block' }}>
+                Commission Wallet
+              </Typography>
+              <Typography sx={{ fontWeight: 900, fontSize: '1.1rem', color: '#fcd34d', mt: 0.3 }}>
+                ₹{Number(totalBalance || 0).toFixed(0)}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.62rem', fontWeight: 700 }}>
+                View Wallet &gt;
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Quick Actions Shortcuts (App-style grid) */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0a2558', mb: 1.5, letterSpacing: '0.5px' }}>
+            QUICK ACTIONS
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1.5 }}>
+            {[
+              { label: 'Collect', icon: <ReceiptLongIcon />, color: '#10b981', path: '/agent/collections' },
+              { label: 'New A/C', icon: <AddCircleIcon />, color: '#3b82f6', path: '/agent/add-new' },
+              { label: 'Reports', icon: <AssessmentIcon />, color: '#f59e0b', path: '/agent/report' },
+              { label: 'Wallet', icon: <AccountBalanceWalletIcon />, color: '#8b5cf6', path: '/agent/wallet' },
+            ].map((action, i) => (
+              <Box
+                key={i}
+                onClick={() => navigate(action.path)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.8,
+                  cursor: 'pointer',
+                  '&:active': { transform: 'scale(0.93)' },
+                }}
+              >
+                <Paper
+                  elevation={0}
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '18px',
+                    bgcolor: 'white',
+                    color: action.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: `0 6px 16px ${action.color}20`,
+                    border: '1px solid #f1f5f9',
+                  }}
+                >
+                  {action.icon}
+                </Paper>
+                <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.72rem', color: '#1e293b' }}>
+                  {action.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        {/* Assigned Accounts Mobile Cards */}
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0a2558', letterSpacing: '0.5px' }}>
+              ASSIGNED ACCOUNTS
+            </Typography>
+            <Typography
+              onClick={() => navigate('/agent/collections')}
+              variant="caption"
+              sx={{ fontWeight: 800, color: '#3b82f6', cursor: 'pointer' }}
+            >
+              See All &gt;
+            </Typography>
+          </Box>
+
+          {Object.keys(accountsByType).length === 0 ? (
+            <Paper elevation={0} sx={{ p: 3, borderRadius: '20px', bgcolor: 'white', textAlign: 'center', border: '1px dashed #cbd5e1' }}>
+              <AccountBalanceIcon sx={{ fontSize: 40, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
+                No Accounts Assigned
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                Contact branch manager to assign member accounts.
+              </Typography>
+            </Paper>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {Object.entries(accountsByType).map(([type, data]: [string, any], index: number) => (
+                <Paper
+                  key={type}
+                  onClick={() => navigate(`/agent/collections?type=${type}`)}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: '18px',
+                    bgcolor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.04)',
+                    border: '1px solid #f1f5f9',
+                    cursor: 'pointer',
+                    '&:active': { transform: 'scale(0.98)' },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: getCardGradient(index),
+                        color: 'white',
+                      }}
+                    >
+                      {getAccountIcon(type)}
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                        {type} Accounts
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                        Tap to collect payments
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip
+                    label={`${data.count} A/C`}
+                    size="small"
+                    sx={{ fontWeight: 800, bgcolor: '#f1f5f9', color: '#0a2558', borderRadius: '10px' }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* Recent Collections Feed */}
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0a2558', letterSpacing: '0.5px' }}>
+              RECENT COLLECTIONS
+            </Typography>
+            <Typography
+              onClick={() => navigate('/agent/report')}
+              variant="caption"
+              sx={{ fontWeight: 800, color: '#3b82f6', cursor: 'pointer' }}
+            >
+              All Reports &gt;
+            </Typography>
+          </Box>
+
+          {collectionTransactions.length === 0 ? (
+            <Paper elevation={0} sx={{ p: 3, borderRadius: '20px', bgcolor: 'white', textAlign: 'center', border: '1px dashed #cbd5e1' }}>
+              <ReceiptLongIcon sx={{ fontSize: 36, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
+                No Collections Yet
+              </Typography>
+            </Paper>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+              {collectionTransactions.slice(0, 5).map((tx: any, idx: number) => (
+                <Paper
+                  key={idx}
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: '16px',
+                    bgcolor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    border: '1px solid #f8fafc',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                    <Avatar sx={{ width: 38, height: 38, bgcolor: '#e0f2fe', color: '#0284c7', fontSize: '0.85rem', fontWeight: 900 }}>
+                      {tx.Name?.[0] || 'M'}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                        {tx.Name || 'Member'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+                        {tx.account_number || tx.account_id}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 900, color: '#10b981' }}>
+                      + ₹{Number(tx.credit || 0).toLocaleString('en-IN')}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.65rem' }}>
+                      {new Date(tx.transaction_date).toLocaleDateString('en-GB')}
+                    </Typography>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Box>
+      </Box>
+    );
+  }
+
+  // ─── EXISTING DESKTOP VIEW (PRESERVED 100%) ───
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3 }, mt: { xs: 8, sm: 10 }, pb: 6 }}>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }, pb: 6 }}>
       {/* Header Section */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, color: '#0a2558', mb: 0.5, fontSize: { xs: '1.5rem', sm: '1.875rem' } }}>

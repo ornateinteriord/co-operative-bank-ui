@@ -6,6 +6,7 @@ import {
   Settings,
   User,
   BookOpen,
+  ArrowLeft,
 } from "lucide-react";
 import "./navbar.scss";
 import {
@@ -17,8 +18,10 @@ import {
   MenuItem,
   Toolbar,
   Typography,
+  Chip,
+  useMediaQuery,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { IconButton } from "@mui/material";
 import useAuth from "../../hooks/use-auth";
 import TokenService from "../../api/token/tokenService";
@@ -34,7 +37,12 @@ interface NavbarProps {
 
 const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 899px)');
   const { isLoggedIn, userRole } = useAuth();
+  const isAgent = userRole === "AGENT";
+  const isUser = userRole === "USER";
+  const isMemberOrAgent = isUser || isAgent;
   const isAdmin = userRole === "ADMIN" || userRole === "ADMIN_01" || userRole === "AGENT";
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -60,6 +68,31 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
     setAnchorEl(null);
   };
 
+  const isRootDashboard =
+    location.pathname === "/user/dashboard" ||
+    location.pathname === "/agent/dashboard" ||
+    location.pathname === "/";
+
+  const getMobileTitle = (path: string) => {
+    if (path.includes('/passbook')) return 'My Passbook';
+    if (path.includes('/wallet')) return isAgent ? 'Agent Wallet' : 'My Wallet';
+    if (path.includes('/collections')) return 'Daily Collections';
+    if (path.includes('/add-new')) return 'Account Opening';
+    if (path.includes('/report')) return 'Collection Reports';
+    if (path.includes('/account/profile') || path.includes('/agent/profile')) return 'Profile';
+    if (path.includes('/account/kyc')) return 'KYC Documents';
+    if (path.includes('/account/change-password')) return 'Change Password';
+    if (path.includes('/loans')) return 'Loans & Advances';
+    if (path.includes('/team')) return 'My Team Network';
+    if (path.includes('/transactions')) return 'Transactions';
+    if (path.includes('/addon-packages')) return 'Deposit Bonds';
+    if (path.includes('/earnings')) return 'ROI & Benefits';
+    if (path.includes('/overdraft')) return 'Overdraft';
+    if (path.includes('/account-opening')) return 'Open Account';
+    if (path.includes('/chat')) return 'Live Support';
+    return 'BMS';
+  };
+
   return (
     <>
       <AppBar
@@ -72,46 +105,110 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
           zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
-        <Toolbar sx={{ 
-          height: { xs: 56, md: 64 }, 
-          px: { xs: 2, md: 3 }, 
-          display: 'flex', 
+        <Toolbar sx={{
+          height: { xs: 56, md: 64 },
+          px: { xs: 1.5, sm: 2, md: 3 },
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {isAdmin && onToggleSidebar && (
-              <IconButton
-                onClick={onToggleSidebar}
-                sx={{ color: "white", mr: 1, display: { xs: 'flex', md: 'flex' } }}
+          {/* Left section: Native mobile header vs desktop header */}
+          {isMobile && isMemberOrAgent ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {!isRootDashboard ? (
+                <>
+                  <IconButton
+                    onClick={() => {
+                      if (window.history.length > 1) {
+                        navigate(-1);
+                      } else {
+                        navigate(isAgent ? "/agent/dashboard" : "/user/dashboard");
+                      }
+                    }}
+                    sx={{
+                      color: "white",
+                      p: 0.75,
+                      bgcolor: "rgba(255,255,255,0.12)",
+                      borderRadius: "12px",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+                    }}
+                  >
+                    <ArrowLeft size={18} />
+                  </IconButton>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '1.05rem',
+                      color: 'white',
+                      letterSpacing: '0.2px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '220px'
+                    }}
+                  >
+                    {getMobileTitle(location.pathname)}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Typography
+                    variant="h5"
+                    onClick={() => navigate(isAgent ? "/agent/dashboard" : "/user/dashboard")}
+                    sx={{
+                      fontWeight: 950,
+                      fontSize: '1.4rem',
+                      cursor: "pointer",
+                      letterSpacing: '1.5px',
+                      color: 'white',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    BMS
+                  </Typography>
+                </>
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {isAdmin && onToggleSidebar && (
+                <IconButton
+                  onClick={onToggleSidebar}
+                  sx={{
+                    color: "white",
+                    mr: 1,
+                    display: { xs: (userRole === "ADMIN" || userRole === "ADMIN_01") ? 'flex' : 'none', md: 'flex' }
+                  }}
+                >
+                  <MenuIcon size={24} />
+                </IconButton>
+              )}
+              <Typography
+                variant="h4"
+                onClick={() => navigate("/")}
+                sx={{
+                  fontWeight: 950,
+                  fontSize: { xs: '1.4rem', md: '1.85rem' },
+                  cursor: "pointer",
+                  letterSpacing: '1.5px',
+                  color: 'white',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
               >
-                <MenuIcon size={24} />
-              </IconButton>
-            )}
-            <Typography
-              variant="h4"
-              onClick={() => navigate("/")}
-              sx={{
-                fontWeight: 950,
-                fontSize: { xs: '1.4rem', md: '1.85rem' },
-                cursor: "pointer",
-                letterSpacing: '1.5px',
-                color: 'white',
-                textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-              }}
-            >
-              BMS
-            </Typography>
-          </Box>
+                BMS
+              </Typography>
+            </Box>
+          )}
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
             {isLoggedIn && (
-              <Box 
-                onClick={handleMenuOpen} 
-                sx={{ 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Box
+                onClick={handleMenuOpen}
+                sx={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 1,
                   padding: '4px 8px',
                   borderRadius: '12px',
@@ -125,7 +222,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                   sx={{
                     width: { xs: 32, md: 38 },
                     height: { xs: 32, md: 38 },
-                    bgcolor: '#FFC000', 
+                    bgcolor: '#FFC000',
                     color: '#0a2558',
                     fontWeight: 900,
                     fontSize: { xs: '0.85rem', md: '1rem' },
@@ -184,7 +281,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
               {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
-               ID: {memberDetails?.Member_id || ""}
+              ID: {memberDetails?.Member_id || ""}
             </Typography>
           </div>
 

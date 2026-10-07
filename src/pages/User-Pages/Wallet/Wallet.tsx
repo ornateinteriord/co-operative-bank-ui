@@ -11,7 +11,9 @@ import {
   Box,
   Button,
   CircularProgress,
-
+  Stack,
+  Paper,
+  Chip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DataTable from "react-data-table-component";
@@ -25,7 +27,7 @@ import { useGetWalletOverview, useWalletWithdraw } from "../../../api/Memeber";
 import { toast } from "react-toastify";
 
 const Wallet = () => {
-  const isMobile = useMediaQuery("(max-width:600px)");
+  const isMobile = useMediaQuery("(max-width:899px)");
   const [amount, setAmount] = useState("");
   const [tds, setTds] = useState(0); const [netAmount, setNetAmount] = useState(0);
   const [optimisticBalance, setOptimisticBalance] = useState<number | null>(null);
@@ -460,18 +462,78 @@ const Wallet = () => {
           </AccordionSummary>
           <AccordionDetails>
             {walletData?.transactions && walletData.transactions.length > 0 ? (
-              <DataTable
-                columns={getWalletColumns()}
-                data={walletData?.transactions}
-                pagination
-                customStyles={DASHBOARD_CUTSOM_STYLE}
-                paginationPerPage={isMobile ? 10 : 25}
-                paginationRowsPerPageOptions={
-                  isMobile ? [10, 20, 50] : [25, 50, 100]
-                }
-                highlightOnHover
-                responsive
-              />
+              isMobile ? (
+                /* Mobile Native Transaction Cards */
+                <Stack spacing={1.5}>
+                  {walletData.transactions.map((tx: any, idx: number) => {
+                    const isDebit = parseFloat(tx.ew_debit) > 0;
+                    const amountText = isDebit
+                      ? `-₹${parseFloat(tx.ew_debit).toFixed(2)}`
+                      : `+₹${parseFloat(tx.ew_credit).toFixed(2)}`;
+                    const txDate = tx.transaction_date ? new Date(tx.transaction_date).toLocaleDateString() : '-';
+                    const statusStr = (tx.status || 'Completed').toLowerCase();
+
+                    return (
+                      <Paper
+                        key={tx.transaction_id || idx}
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          borderRadius: '16px',
+                          bgcolor: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                            {txDate} • ID: {tx.transaction_id}
+                          </Typography>
+                          <Chip
+                            label={tx.status ? (tx.status.charAt(0).toUpperCase() + tx.status.slice(1)) : 'Completed'}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              bgcolor: statusStr === 'completed' || statusStr === 'success' ? '#dcfce7' : '#fef9c3',
+                              color: statusStr === 'completed' || statusStr === 'success' ? '#166534' : '#854d0e',
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#1e293b' }}>
+                              {tx.transaction_type || 'Wallet Transfer'}
+                            </Typography>
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontWeight: 900,
+                              fontSize: '1.15rem',
+                              color: isDebit ? '#dc2626' : '#16a34a',
+                            }}
+                          >
+                            {amountText}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+              ) : (
+                /* Desktop Table */
+                <DataTable
+                  columns={getWalletColumns()}
+                  data={walletData?.transactions}
+                  pagination
+                  customStyles={DASHBOARD_CUTSOM_STYLE}
+                  paginationPerPage={25}
+                  paginationRowsPerPageOptions={[25, 50, 100]}
+                  highlightOnHover
+                  responsive
+                />
+              )
             ) : (
               <Box sx={{ textAlign: "center", py: 4 }}>
                 <Typography variant="h6" color="textSecondary">

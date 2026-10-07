@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
     Box, Typography, Card, CardContent, Button, Table, TableBody, TableCell,
-    TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert
+    TableContainer, TableHead, TableRow, Paper, CircularProgress, Alert,
+    useMediaQuery, Stack
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -11,6 +12,7 @@ import { useGetAgentById, useGetAgentCommissionTransactions } from '../../querie
 import WithdrawMoneyDialog from '../../components/Wallet/WithdrawMoneyDialog';
 
 const AgentWallet = () => {
+    const isMobile = useMediaQuery('(max-width: 899px)');
     const navigate = useNavigate();
     const agentId = TokenService.getMemberId() || '';
     const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
@@ -161,6 +163,80 @@ const AgentWallet = () => {
                         Your commission earnings and withdrawals will appear here
                     </Typography>
                 </Paper>
+            ) : isMobile ? (
+                /* Mobile Native Cards */
+                <Stack spacing={1.5}>
+                    {transactions.map((transaction: any) => {
+                        const formatted = formatTransaction(transaction);
+                        return (
+                            <Paper
+                                key={formatted.id}
+                                elevation={0}
+                                sx={{
+                                    p: 2,
+                                    borderRadius: '16px',
+                                    bgcolor: 'white',
+                                    border: '1px solid #f1f5f9',
+                                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                                        {formatted.date}
+                                    </Typography>
+                                    <Box sx={{
+                                        display: 'inline-block',
+                                        px: 1.25,
+                                        py: 0.25,
+                                        borderRadius: '6px',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 'bold',
+                                        bgcolor: formatted.status === 'Completed' || formatted.status === 'Success'
+                                            ? '#dcfce7'
+                                            : formatted.status === 'Pending'
+                                                ? '#fef9c3'
+                                                : '#fee2e2',
+                                        color: formatted.status === 'Completed' || formatted.status === 'Success'
+                                            ? '#166534'
+                                            : formatted.status === 'Pending'
+                                                ? '#854d0e'
+                                                : '#991b1b',
+                                    }}>
+                                        {formatted.status}
+                                    </Box>
+                                </Box>
+
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box>
+                                        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#1f2937' }}>
+                                            {formatted.description}
+                                        </Typography>
+                                        <Box sx={{
+                                            display: 'inline-block',
+                                            mt: 0.5,
+                                            px: 1,
+                                            py: 0.25,
+                                            borderRadius: '6px',
+                                            fontSize: '0.7rem',
+                                            fontWeight: 700,
+                                            bgcolor: formatted.isCredit ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                            color: formatted.isCredit ? '#16a34a' : '#dc2626',
+                                        }}>
+                                            {formatted.isCredit ? 'Commission' : 'Withdrawal'}
+                                        </Box>
+                                    </Box>
+                                    <Typography sx={{
+                                        fontWeight: 900,
+                                        fontSize: '1.15rem',
+                                        color: formatted.isCredit ? '#16a34a' : '#dc2626'
+                                    }}>
+                                        {formatted.amount}
+                                    </Typography>
+                                </Box>
+                            </Paper>
+                        );
+                    })}
+                </Stack>
             ) : (
                 <TableContainer component={Paper} sx={{
                     borderRadius: '12px',

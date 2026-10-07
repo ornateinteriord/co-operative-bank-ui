@@ -16,23 +16,64 @@ body {
   scroll-behavior: smooth;
 }
 
-/* Premium Webkit Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Global scrollbar rules */
+/* On mobile screens (< 900px), hide scrollbars entirely for a native iOS/Android look and prevent duplicate scrollbars */
+@media (max-width: 899px) {
+  ::-webkit-scrollbar,
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  div::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  .content-wrapper,
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+/* On desktop (>= 900px), apply clean single scrollbar on root to prevent nested duplicate scrollbars */
+@media (min-width: 900px) {
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background: #0a2558;
+    border-radius: 4px;
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background: #FFC000;
+  }
 }
 
-::-webkit-scrollbar-thumb {
-  background: #0a2558;
-  border-radius: 4px;
+/* Always hide scrollbars on MUI Drawer paper and overlay dialogs to avoid dual scrollbars */
+.MuiDrawer-paper,
+.MuiDialog-paper {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #FFC000;
+.MuiDrawer-paper::-webkit-scrollbar,
+.MuiDialog-paper::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }
 
 /* Global Transition Effects for Buttons & Cards */
