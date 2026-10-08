@@ -22,7 +22,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { useGetMemberById, useGetAgentById } from '../queries/admin/index';
+import { useGetMemberById } from '../queries/admin/index';
 
 interface MemberFormData {
   member_id?: string;
@@ -93,16 +93,10 @@ const MemberModifyDialog: React.FC<ModifyDialogProps> = ({
   const [shouldFetchIntroducer, setShouldFetchIntroducer] = useState<boolean>(false);
   const [introducerError, setIntroducerError] = useState<boolean>(false);
 
-  // Fetch agent data when introducer code is entered and onBlur triggered
-  const { data: agentData, isLoading: isLoadingAgent, isError: isAgentError } = useGetAgentById(
+  // Fetch member data when introducer code is entered and onBlur triggered (Searches member table only)
+  const { data: introducerMemberData, isLoading: isLoadingIntroducerMember, isError: isIntroducerMemberError } = useGetMemberById(
     introducerCode,
     shouldFetchIntroducer && !!introducerCode && introducerCode.length > 0
-  );
-
-  // Also try to fetch as member if agent not found
-  const { data: introducerMemberData, isLoading: isLoadingIntroducerMember, isError: isIntroducerMemberError, } = useGetMemberById(
-    introducerCode,
-    shouldFetchIntroducer && !!introducerCode && introducerCode.length > 0 && isAgentError
   );
 
   const [formData, setFormData] = useState<MemberFormData>({
@@ -200,29 +194,20 @@ const MemberModifyDialog: React.FC<ModifyDialogProps> = ({
     }
   }, [memberData, isEditMode, open, isError]);
 
-  // Auto-populate introducer name when agent or member data is fetched
+  // Auto-populate introducer name when member data is fetched (searches member table only)
   useEffect(() => {
     if (shouldFetchIntroducer) {
-      // First try agent data
-      if (agentData?.data?.name) {
+      const member = introducerMemberData?.data || (introducerMemberData as any)?.member;
+      const memberName = member?.name || member?.Name || '';
+
+      if (memberName) {
         setFormData(prev => ({
           ...prev,
-          introducer_name: agentData.data.name || ''
+          introducer_name: memberName
         }));
         setIntroducerError(false);
         setShouldFetchIntroducer(false);
-      }
-      // If agent not found, try member data
-      else if (isAgentError && introducerMemberData?.data?.name) {
-        setFormData(prev => ({
-          ...prev,
-          introducer_name: introducerMemberData.data.name || ''
-        }));
-        setIntroducerError(false);
-        setShouldFetchIntroducer(false);
-      }
-      // If both failed, show error
-      else if (isAgentError && isIntroducerMemberError) {
+      } else if (isIntroducerMemberError) {
         setIntroducerError(true);
         setFormData(prev => ({
           ...prev,
@@ -231,7 +216,7 @@ const MemberModifyDialog: React.FC<ModifyDialogProps> = ({
         setShouldFetchIntroducer(false);
       }
     }
-  }, [agentData, introducerMemberData, isAgentError, isIntroducerMemberError, shouldFetchIntroducer]);
+  }, [introducerMemberData, isIntroducerMemberError, shouldFetchIntroducer]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -552,7 +537,7 @@ const MemberModifyDialog: React.FC<ModifyDialogProps> = ({
                 error={introducerError}
                 sx={isEditMode ? { backgroundColor: '#f5f5f5' } : {}}
                 InputProps={{
-                  endAdornment: (isLoadingAgent || isLoadingIntroducerMember) ? (
+                  endAdornment: isLoadingIntroducerMember ? (
                     <InputAdornment position="end">
                       <CircularProgress size={20} />
                     </InputAdornment>
@@ -562,8 +547,8 @@ const MemberModifyDialog: React.FC<ModifyDialogProps> = ({
                   isEditMode
                     ? "Introducer cannot be changed after member creation"
                     : introducerError
-                      ? "Introducer ID not found in our records"
-                      : "Enter Agent or Member ID"
+                      ? "Member ID not found in our records"
+                      : "Enter Member ID"
                 }
               />
             </Grid>

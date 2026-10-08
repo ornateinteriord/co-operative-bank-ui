@@ -169,6 +169,8 @@ export interface MemberLoanItem {
     introducer?: string;
     assigned_to?: string;
     joint_member?: string;
+    loan_disbursed_to?: string | null;
+    disbursed_at?: string | null;
     recent_transactions?: any[];
 }
 
@@ -194,5 +196,32 @@ export const useGetMyLoans = () => {
         queryFn: async () => {
             return await useApi<MemberLoansResponse>("GET", "/member/get-my-loans");
         },
+    });
+};
+
+// SET PRIMARY OPERATING ACCOUNT
+export const useSetPrimaryAccount = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ account_no, account_id, member_id }: { account_no?: string; account_id?: string; member_id?: string }) => {
+            return await useApi<any>("POST", "/member/set-primary-account", { account_no, account_id, member_id });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["myAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["memberAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["member"] });
+        },
+    });
+};
+
+// GET MEMBER ACCOUNTS (PUBLIC / PROTECTED LOOKUP)
+export const useGetMemberAccountsPublic = (memberId: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ["memberAccountsPublic", memberId],
+        queryFn: async () => {
+            return await useApi<any>("GET", `/member/accounts/${memberId}`);
+        },
+        enabled: enabled && !!memberId,
     });
 };

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Divider,
   InputAdornment,
+  Alert,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -24,7 +25,6 @@ import {
   useGetMemberById,
   useCreateAccountByAgent,
 } from '../../queries/admin';
-import { useGetAgentById } from '../../queries/Agent';
 import TokenService from '../../queries/token/tokenService';
 
 // Modern Input Styles - Blue Theme (Member Section)
@@ -93,10 +93,10 @@ const AddNew: React.FC = () => {
   const [memberInfo, setMemberInfo] = useState<any>(null);
   const [accountGroupId, setAccountGroupId] = useState<string>('');
 
-  // State for introducer auto-population
+  // State for introducer auto-population (searches member table only)
   const [introducerCode, setIntroducerCode] = useState<string>('');
-  const [shouldFetchAgent, setShouldFetchAgent] = useState<boolean>(false);
-  const [agentError, setAgentError] = useState<boolean>(false);
+  const [shouldFetchIntroducer, setShouldFetchIntroducer] = useState<boolean>(false);
+  const [introducerError, setIntroducerError] = useState<boolean>(false);
 
   const [form, setForm] = useState<any>({
     accountType: '',
@@ -129,10 +129,10 @@ const AddNew: React.FC = () => {
     !!accountGroupId
   );
 
-  // Fetch agent data when introducer code is entered and onBlur triggered (using agent API)
-  const { data: agentData, isLoading: isLoadingAgent, isError: isAgentError } = useGetAgentById(
+  // Fetch member data when introducer code is entered and onBlur triggered (Searches member table only)
+  const { data: introducerData, isLoading: isLoadingIntroducer, isError: isIntroducerError } = useGetMemberById(
     introducerCode,
-    shouldFetchAgent && !!introducerCode && introducerCode.length > 0
+    shouldFetchIntroducer && !!introducerCode && introducerCode.length > 0
   );
 
   // Create account mutation
@@ -150,26 +150,29 @@ const AddNew: React.FC = () => {
     }
   }, [form.accountType, accountGroupsData]);
 
-  // Auto-populate introducer name when agent data is fetched
+  // Auto-populate introducer name when member data is fetched
   useEffect(() => {
-    if (agentData?.data?.name) {
+    const member = introducerData?.data || (introducerData as any)?.member;
+    const memberName = member?.name || member?.Name || '';
+
+    if (memberName) {
       setForm((prev: any) => ({
         ...prev,
-        introducerName: agentData.data.name || ''
+        introducerName: memberName
       }));
-      setAgentError(false);
+      setIntroducerError(false);
       // Reset fetch trigger after successful fetch
-      setShouldFetchAgent(false);
-    } else if (isAgentError && shouldFetchAgent) {
-      // Agent not found
-      setAgentError(true);
+      setShouldFetchIntroducer(false);
+    } else if (isIntroducerError && shouldFetchIntroducer) {
+      // Member not found
+      setIntroducerError(true);
       setForm((prev: any) => ({
         ...prev,
         introducerName: ''
       }));
-      setShouldFetchAgent(false);
+      setShouldFetchIntroducer(false);
     }
-  }, [agentData, isAgentError, shouldFetchAgent]);
+  }, [introducerData, isIntroducerError, shouldFetchIntroducer]);
 
   // Handle member info fetch
   const handleGetInfo = async () => {
@@ -208,10 +211,10 @@ const AddNew: React.FC = () => {
     // If introducer code is changed, update the introducer code state
     if (field === 'introducer') {
       setIntroducerCode(value);
-      setAgentError(false); // Clear error when user types
+      setIntroducerError(false); // Clear error when user types
       // Clear introducer name and stop fetching if code is cleared
       if (!value) {
-        setShouldFetchAgent(false);
+        setShouldFetchIntroducer(false);
         setForm((prev: any) => ({
           ...prev,
           introducerName: ''
@@ -224,7 +227,7 @@ const AddNew: React.FC = () => {
   const handleIntroducerBlur = () => {
     if (form.introducer && form.introducer.trim().length > 0) {
       setIntroducerCode(form.introducer.trim());
-      setShouldFetchAgent(true);
+      setShouldFetchIntroducer(true);
     }
   };
 
@@ -276,6 +279,12 @@ const AddNew: React.FC = () => {
 
     if (form.accountOperation === 'Any two' && !form.jointMember) {
       toast.error('Please enter joint member details');
+      return;
+    }
+
+    // Check if loan is selected without operating account
+    if (isSelectedLoan && !memberHasOperatingAccount) {
+      toast.error('Operating Bank Account Required: Member must have an active Savings Bank (SB) or Current Account (CA) before a loan can be assigned.');
       return;
     }
 
@@ -333,6 +342,22 @@ const AddNew: React.FC = () => {
   // Determine if interest fields should be shown based on account type name
   const selectedAccountGroup = accountGroups.find((group: any) => group.account_group_id === form.accountType);
   const showInterestFields = selectedAccountGroup && ['SB', 'FD', 'PIGMY', 'RD', 'MIS'].includes(selectedAccountGroup?.account_group_name || '');
+
+  const isSelectedLoan = selectedAccountGroup && (
+    selectedAccountGroup.account_group_name?.toUpperCase().includes('LOAN') ||
+    selectedAccountGroup.account_group_name?.toUpperCase().includes('OVERDRAFT') ||
+    selectedAccountGroup.account_book_id === 'ABK026'
+  );
+
+  // Check if member has an operating account
+  const memberHasOperatingAccount = Boolean(
+    memberInfo?.has_operating_account ||
+    (Array.isArray(memberInfo?.accounts) && memberInfo.accounts.some((acc: any) => {
+      const typeUpper = (acc.account_type || acc.account_group_name || '').toUpperCase();
+      const noUpper = (acc.account_no || '').toUpperCase();
+      return !typeUpper.includes('LOAN') && !/^(PL|ML|GL|BL|VL|EL|AL|PGL|PGLD|OD|LN)/i.test(noUpper);
+    }))
+  );
 
   return (
     <Box sx={{ mt: { xs: 8, sm: 10 }, px: { xs: 1.5, sm: 2, md: 3 }, pb: 4 }}>
@@ -600,10 +625,10 @@ const AddNew: React.FC = () => {
                       value={form.introducer}
                       onChange={(e) => handleChange('introducer', e.target.value)}
                       onBlur={handleIntroducerBlur}
-                      error={agentError}
-                      helperText={agentError ? 'Agent not found' : ''}
+                      error={introducerError}
+                      helperText={introducerError ? 'Member not found' : ''}
                       InputProps={{
-                        endAdornment: isLoadingAgent ? (
+                        endAdornment: isLoadingIntroducer ? (
                           <InputAdornment position="end">
                             <CircularProgress size={20} />
                           </InputAdornment>
@@ -633,6 +658,14 @@ const AddNew: React.FC = () => {
                     />
                   </Grid>
 
+                  {isSelectedLoan && !memberHasOperatingAccount && (
+                    <Grid item xs={12}>
+                      <Alert severity="error" sx={{ borderRadius: '10px' }}>
+                        <strong>Operating Bank Account Required:</strong> In banking regulations, every borrower must have an active operating Savings Bank (SB) or Current Account (CA) before a loan can be created or assigned. Please open an SB account for this member first.
+                      </Alert>
+                    </Grid>
+                  )}
+
                   <Grid item xs={12} sx={{ mt: 2 }}>
                     <Divider sx={{ mb: 3 }} />
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -640,21 +673,27 @@ const AddNew: React.FC = () => {
                         variant="contained"
                         size="large"
                         onClick={handleSubmit}
-                        disabled={!memberInfo || createAccountMutation.isPending}
+                        disabled={!memberInfo || createAccountMutation.isPending || (isSelectedLoan && !memberHasOperatingAccount)}
                         sx={{
-                          background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+                          background: (isSelectedLoan && !memberHasOperatingAccount) ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
                           px: 4,
                           py: 1.5,
                           fontWeight: 600,
                           borderRadius: '12px',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                          boxShadow: (isSelectedLoan && !memberHasOperatingAccount) ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.3)',
                           '&:hover': {
                             background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                             boxShadow: '0 6px 16px rgba(16, 185, 129, 0.4)',
                           },
                         }}
                       >
-                        {createAccountMutation.isPending ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Create Account'}
+                        {createAccountMutation.isPending ? (
+                          <CircularProgress size={24} sx={{ color: 'white' }} />
+                        ) : (isSelectedLoan && !memberHasOperatingAccount) ? (
+                          'Operating (SB) Account Required First'
+                        ) : (
+                          'Create Account'
+                        )}
                       </Button>
                     </Box>
                   </Grid>

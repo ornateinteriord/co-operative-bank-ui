@@ -24,7 +24,7 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import AdminReusableTable, { ColumnDefinition } from '../../utils/AdminReusableTable';
 import { useGetAssignedAccounts, useCollectPayment } from '../../queries/Agent';
 import TokenService from '../../queries/token/tokenService';
@@ -34,7 +34,6 @@ const Collections: React.FC = () => {
   const isMobile = useMediaQuery('(max-width: 899px)');
   const agentId = TokenService.getMemberId();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const typeFilter = searchParams.get('type');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,17 +46,131 @@ const Collections: React.FC = () => {
 
   const allAccounts = data?.data || [];
 
+  // Helper to check if a type is a loan
+  const isLoanAccountType = (typeStr?: string): boolean => {
+    if (!typeStr) return false;
+    const s = typeStr.toLowerCase();
+    return s.includes('loan') || s.includes('draft') || s.startsWith('gl') || s.startsWith('pl') || s.startsWith('vl') || s.startsWith('bl') || s.startsWith('el') || s.startsWith('al') || s.startsWith('ml') || s === 'agp007' || s === 'agp013' || s === 'agp016' || s === 'agp017' || s === 'agp008' || s === 'agp010' || s === 'agp009' || s === 'agp014' || s === 'agp011' || s === 'agp012';
+  };
+
+  // Flexible matcher between account and active tab
+  const matchAccountToType = (acc: AssignedAccount, tab: string): boolean => {
+    if (!tab || tab === 'All') return true;
+    const target = tab.toLowerCase().trim();
+    const accType = (acc.account_type || '').toLowerCase().trim();
+    const groupName = ((acc as any).account_group_name || '').toLowerCase().trim();
+    const typeId = ((acc as any).account_type_id || '').toLowerCase().trim();
+    const accNo = (acc.account_no || '').toLowerCase().trim();
+
+    // Exact matches
+    if (accType === target || groupName === target || typeId === target) return true;
+
+    // Specific loan mappings
+    if (target === 'gold loan') {
+      return accType.includes('gold') || groupName.includes('gold') || typeId === 'agp007' || accNo.startsWith('gl');
+    }
+    if (target === 'personal loan') {
+      return accType.includes('personal') || groupName.includes('personal') || typeId === 'agp013' || accNo.startsWith('pl');
+    }
+    if (target === 'pigmy loan') {
+      return accType.includes('pigmi loan') || accType.includes('pigmy loan') || groupName.includes('pigmi loan') || groupName.includes('pigmy loan') || typeId === 'agp016';
+    }
+    if (target === 'pigmi gold loan') {
+      return accType.includes('pigmi gold') || accType.includes('pigmy gold') || typeId === 'agp017';
+    }
+    if (target === 'vehicle loan') {
+      return accType.includes('vehicle') || groupName.includes('vehicle') || typeId === 'agp008' || accNo.startsWith('vl');
+    }
+    if (target === 'business loan') {
+      return accType.includes('business') || groupName.includes('business') || typeId === 'agp010' || accNo.startsWith('bl');
+    }
+    if (target === 'education loan') {
+      return accType.includes('education') || groupName.includes('education') || typeId === 'agp009' || accNo.startsWith('el');
+    }
+    if (target === 'agriculture loan' || target === 'agri loan') {
+      return accType.includes('agri') || groupName.includes('agri') || typeId === 'agp014' || accNo.startsWith('al');
+    }
+    if (target === 'mortgage loan') {
+      return accType.includes('mortgage') || groupName.includes('mortgage') || typeId === 'agp011' || accNo.startsWith('ml');
+    }
+    if (target === 'overdraft') {
+      return accType.includes('overdraft') || groupName.includes('overdraft') || typeId === 'agp012' || accNo.startsWith('od');
+    }
+
+    // Savings / Deposits
+    if (target === 'sb') {
+      return accType === 'sb' || groupName === 'sb' || typeId === 'agp001' || accNo.startsWith('sb');
+    }
+    if (target === 'rd') {
+      return accType === 'rd' || groupName === 'rd' || typeId === 'agp003' || accNo.startsWith('rd');
+    }
+    if (target === 'fd') {
+      return accType === 'fd' || groupName === 'fd' || typeId === 'agp004' || accNo.startsWith('fd');
+    }
+    if (target === 'pigmy') {
+      return ((accType.includes('pigmy') || accType.includes('pigmi')) && !accType.includes('loan') && !groupName.includes('loan')) || typeId === 'agp005' || typeId === 'agp015';
+    }
+    if (target === 'mis') {
+      return accType === 'mis' || groupName === 'mis' || typeId === 'agp006';
+    }
+
+    return accType.includes(target) || groupName.includes(target);
+  };
+
+  // Specific tabs including specific loan tabs
+  const filterTabs = useMemo(() => {
+    const baseTabs = [
+      'All',
+      'SB',
+      'RD',
+      'FD',
+      'Pigmy',
+      'MIS',
+      'Gold Loan',
+      'Pigmy Loan',
+      'Personal Loan',
+      'Vehicle Loan',
+      'Business Loan',
+      'Agriculture Loan',
+      'Education Loan',
+      'Mortgage Loan',
+      'Overdraft',
+    ];
+
+    // Collect any extra types present in allAccounts
+    const extraTypes = new Set<string>();
+    allAccounts.forEach((acc: any) => {
+      const type = acc.account_type || acc.account_group_name;
+      if (type && !baseTabs.some((t) => t.toLowerCase() === type.toLowerCase())) {
+        extraTypes.add(type);
+      }
+    });
+
+    return [...baseTabs, ...Array.from(extraTypes)];
+  }, [allAccounts]);
+
+  // Tab count lookup
+  const tabCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filterTabs.forEach((tab) => {
+      counts[tab] = allAccounts.filter((acc: AssignedAccount) => matchAccountToType(acc, tab)).length;
+    });
+    return counts;
+  }, [filterTabs, allAccounts]);
+
   // Filter accounts by type and search query
   const accounts = useMemo(() => {
     let list = allAccounts;
     if (typeFilter) {
-      list = list.filter((acc: AssignedAccount) => acc.account_type?.toLowerCase() === typeFilter.toLowerCase());
+      list = list.filter((acc: AssignedAccount) => matchAccountToType(acc, typeFilter));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       list = list.filter((acc: AssignedAccount) =>
-        acc.account_holder?.toLowerCase().includes(q) ||
-        acc.account_no?.toLowerCase().includes(q)
+        (acc.account_holder || '').toLowerCase().includes(q) ||
+        ((acc as any).member_name || '').toLowerCase().includes(q) ||
+        ((acc as any).Name || '').toLowerCase().includes(q) ||
+        (acc.account_no || '').toLowerCase().includes(q)
       );
     }
     return list;
@@ -120,23 +233,33 @@ const Collections: React.FC = () => {
       id: 'account_holder',
       label: 'Account Holder',
       sortable: true,
+      renderCell: (row) => {
+        const holder = row.account_holder && row.account_holder !== 'N/A'
+          ? row.account_holder
+          : (row as any).member_name || (row as any).Name || '-';
+        return holder;
+      },
     },
     {
       id: 'account_type',
       label: 'Account Type',
       sortable: true,
-      renderCell: (row) => (
-        <Chip
-          label={row.account_type || '-'}
-          size="small"
-          sx={{
-            backgroundColor: '#e0e7ff',
-            color: '#4338ca',
-            fontWeight: 600,
-            borderRadius: 1,
-          }}
-        />
-      ),
+      renderCell: (row) => {
+        const type = row.account_type || (row as any).account_group_name || '-';
+        const isLoan = isLoanAccountType(type);
+        return (
+          <Chip
+            label={type}
+            size="small"
+            sx={{
+              backgroundColor: isLoan ? '#fef3c7' : '#e0e7ff',
+              color: isLoan ? '#b45309' : '#4338ca',
+              fontWeight: 700,
+              borderRadius: 1,
+            }}
+          />
+        );
+      },
     },
     {
       id: 'date_of_maturity',
@@ -261,12 +384,15 @@ const Collections: React.FC = () => {
               scrollbarWidth: 'none',
             }}
           >
-            {['All', 'SB', 'RD', 'FD', 'Pigmy', 'MIS'].map((tab) => {
+            {filterTabs.map((tab) => {
               const isSelected = (!typeFilter && tab === 'All') || (typeFilter?.toLowerCase() === tab.toLowerCase());
+              const isLoan = isLoanAccountType(tab);
+              const count = tabCounts[tab] || 0;
+
               return (
                 <Chip
                   key={tab}
-                  label={tab}
+                  label={count > 0 ? `${tab} (${count})` : tab}
                   clickable
                   onClick={() => {
                     if (tab === 'All') {
@@ -280,13 +406,25 @@ const Collections: React.FC = () => {
                     fontSize: '0.8rem',
                     borderRadius: '12px',
                     px: 0.5,
-                    bgcolor: isSelected ? '#16a34a' : 'white',
-                    color: isSelected ? 'white' : '#475569',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    bgcolor: isSelected
+                      ? (isLoan ? '#d97706' : '#16a34a')
+                      : (isLoan ? '#fffbeb' : 'white'),
+                    color: isSelected
+                      ? 'white'
+                      : (isLoan ? '#b45309' : '#475569'),
                     border: '1px solid',
-                    borderColor: isSelected ? '#16a34a' : '#e2e8f0',
-                    boxShadow: isSelected ? '0 2px 8px rgba(22,163,74,0.25)' : 'none',
+                    borderColor: isSelected
+                      ? (isLoan ? '#d97706' : '#16a34a')
+                      : (isLoan ? '#fcd34d' : '#e2e8f0'),
+                    boxShadow: isSelected
+                      ? (isLoan ? '0 2px 8px rgba(217,119,6,0.3)' : '0 2px 8px rgba(22,163,74,0.25)')
+                      : 'none',
                     '&:hover': {
-                      bgcolor: isSelected ? '#15803d' : '#f8fafc',
+                      bgcolor: isSelected
+                        ? (isLoan ? '#b45309' : '#15803d')
+                        : (isLoan ? '#fef3c7' : '#f8fafc'),
                     },
                   }}
                 />
@@ -348,11 +486,11 @@ const Collections: React.FC = () => {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Chip
-                            label={acc.account_type || 'Account'}
+                            label={acc.account_type || (acc as any).account_group_name || 'Account'}
                             size="small"
                             sx={{
-                              bgcolor: '#eff6ff',
-                              color: '#2563eb',
+                              bgcolor: isLoanAccountType(acc.account_type || (acc as any).account_group_name) ? '#fef3c7' : '#eff6ff',
+                              color: isLoanAccountType(acc.account_type || (acc as any).account_group_name) ? '#b45309' : '#2563eb',
                               fontWeight: 800,
                               fontSize: '0.72rem',
                               borderRadius: '8px',
@@ -378,7 +516,9 @@ const Collections: React.FC = () => {
 
                       {/* Holder Name */}
                       <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a', mb: 1.25 }}>
-                        {acc.account_holder}
+                        {acc.account_holder && acc.account_holder !== 'N/A'
+                          ? acc.account_holder
+                          : (acc as any).member_name || (acc as any).Name || 'Member'}
                       </Typography>
 
                       {/* Balance & Date Tile */}
@@ -441,8 +581,70 @@ const Collections: React.FC = () => {
           )}
         </Box>
       ) : (
-        /* Desktop Existing View - 100% Preserved */
+        /* Desktop View with Specific Loan Tabs */
         <Box sx={{ mt: 10, px: 3, pb: 4 }}>
+          {/* Desktop Filter Chips */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              overflowX: 'auto',
+              py: 1,
+              mb: 2.5,
+              alignItems: 'center',
+              '&::-webkit-scrollbar': { height: 6 },
+              '&::-webkit-scrollbar-thumb': { backgroundColor: '#cbd5e1', borderRadius: 3 },
+            }}
+          >
+            {filterTabs.map((tab) => {
+              const isSelected = (!typeFilter && tab === 'All') || (typeFilter?.toLowerCase() === tab.toLowerCase());
+              const isLoan = isLoanAccountType(tab);
+              const count = tabCounts[tab] || 0;
+
+              return (
+                <Chip
+                  key={tab}
+                  label={count > 0 ? `${tab} (${count})` : tab}
+                  clickable
+                  onClick={() => {
+                    if (tab === 'All') {
+                      setSearchParams({});
+                    } else {
+                      setSearchParams({ type: tab });
+                    }
+                  }}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    borderRadius: '12px',
+                    px: 1,
+                    py: 2,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    bgcolor: isSelected
+                      ? (isLoan ? '#d97706' : '#16a34a')
+                      : (isLoan ? '#fffbeb' : 'white'),
+                    color: isSelected
+                      ? 'white'
+                      : (isLoan ? '#b45309' : '#475569'),
+                    border: '1px solid',
+                    borderColor: isSelected
+                      ? (isLoan ? '#d97706' : '#16a34a')
+                      : (isLoan ? '#fcd34d' : '#e2e8f0'),
+                    boxShadow: isSelected
+                      ? (isLoan ? '0 2px 8px rgba(217,119,6,0.3)' : '0 2px 8px rgba(22,163,74,0.25)')
+                      : 'none',
+                    '&:hover': {
+                      bgcolor: isSelected
+                        ? (isLoan ? '#b45309' : '#15803d')
+                        : (isLoan ? '#fef3c7' : '#f8fafc'),
+                    },
+                  }}
+                />
+              );
+            })}
+          </Box>
+
           {/* Filter Header */}
           {typeFilter && (
             <Box
@@ -450,7 +652,9 @@ const Collections: React.FC = () => {
                 mb: 2,
                 p: 2,
                 borderRadius: 2,
-                background: 'linear-gradient(135deg, #667EEA 0%, #818CF8 100%)',
+                background: isLoanAccountType(typeFilter)
+                  ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'
+                  : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -463,8 +667,8 @@ const Collections: React.FC = () => {
                 <Chip
                   label={typeFilter}
                   sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    color: '#4338ca',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    color: isLoanAccountType(typeFilter) ? '#b45309' : '#15803d',
                     fontWeight: 700,
                     fontSize: '0.875rem',
                   }}
@@ -473,7 +677,7 @@ const Collections: React.FC = () => {
               <Button
                 variant="contained"
                 size="small"
-                onClick={() => navigate('/agent/collections')}
+                onClick={() => setSearchParams({})}
                 sx={{
                   backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   color: 'white',

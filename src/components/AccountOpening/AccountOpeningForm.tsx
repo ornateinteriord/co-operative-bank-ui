@@ -17,9 +17,12 @@ import {
   InputAdornment,
   useTheme,
   useMediaQuery,
+  Paper,
+  Chip,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import StarIcon from '@mui/icons-material/Star';
 import { toast } from 'react-toastify';
 import * as AdminQueries from '../../queries/admin';
 import * as MemberQueries from '../../queries/Member';
@@ -251,10 +254,10 @@ const AccountOpeningForm: React.FC<Props> = ({
   const [memberInfo, setMemberInfo] = useState<any>(null);
   const [accountGroupId, setAccountGroupId] = useState<string>('');
 
-  // State for introducer auto-population
+  // State for introducer auto-population (searches member table only)
   const [introducerCode, setIntroducerCode] = useState<string>('');
-  const [shouldFetchAgent, setShouldFetchAgent] = useState<boolean>(false);
-  const [agentError, setAgentError] = useState<boolean>(false);
+  const [shouldFetchIntroducer, setShouldFetchIntroducer] = useState<boolean>(false);
+  const [introducerError, setIntroducerError] = useState<boolean>(false);
 
   // Auto-fetch member info if prefilled
   useEffect(() => {
@@ -345,10 +348,10 @@ const AccountOpeningForm: React.FC<Props> = ({
   const interestsData = isUser ? memberInterests.data : adminInterests.data;
   const loadingInterests = isUser ? memberInterests.isLoading : adminInterests.isLoading;
 
-  // Fetch agent data when introducer code is entered and onBlur triggered (Admin only)
-  const { data: agentData, isLoading: isLoadingAgent, isError: isAgentError } = AdminQueries.useGetAgentById(
+  // Fetch member data when introducer code is entered and onBlur triggered (Searches member table only)
+  const { data: introducerData, isLoading: isLoadingIntroducer, isError: isIntroducerError } = AdminQueries.useGetMemberById(
     introducerCode,
-    !isUser && shouldFetchAgent && !!introducerCode && introducerCode.length > 0
+    !isUser && shouldFetchIntroducer && !!introducerCode && introducerCode.length > 0
   );
 
   // Create account mutation
@@ -358,6 +361,36 @@ const AccountOpeningForm: React.FC<Props> = ({
 
   // Cashfree Order Mutation
   const { mutate: createOrder, isPending: isOrderPending } = useCreatePaymentOrder();
+
+  // Fetch member's operating accounts for loan disbursement destination
+  const { data: memberAccountsData } = MemberQueries.useGetMemberAccountsPublic(
+    memberId,
+    !!memberId && !!memberInfo
+  );
+
+  const operatingAccounts = React.useMemo(() => {
+    if (!memberAccountsData?.data || !Array.isArray(memberAccountsData.data)) return [];
+    return memberAccountsData.data.filter((acc: any) => {
+      const gName = (acc.account_group_name || '').toUpperCase();
+      const aNo = (acc.account_no || '').toUpperCase();
+      const aId = (acc.account_id || '').toUpperCase();
+      const isLoan = gName.includes('LOAN') || gName.includes('OVERDRAFT') ||
+        aId.startsWith('LOAN') || /^(PL|ML|GL|BL|VL|EL|AL|PGL|PGLD|OD|LN)/i.test(aNo);
+      return !isLoan;
+    });
+  }, [memberAccountsData]);
+
+  const primaryAccount = React.useMemo(() => {
+    return operatingAccounts.find((acc: any) => acc.is_primary) || operatingAccounts[0] || null;
+  }, [operatingAccounts]);
+
+  const [disburseToAccount, setDisburseToAccount] = useState<string>('');
+
+  useEffect(() => {
+    if (primaryAccount && !disburseToAccount) {
+      setDisburseToAccount(primaryAccount.account_no);
+    }
+  }, [primaryAccount, disburseToAccount]);
 
   console.log('AccountOpeningForm Debug:', { isUser, accountGroupId, defaultAccountType });
   console.log('Account Groups Data:', accountGroupsData);
@@ -427,27 +460,29 @@ const AccountOpeningForm: React.FC<Props> = ({
     }
   }, [accountGroupsData, defaultAccountType, form.accountType]);
 
-  // Auto-populate introducer name when agent data is fetched
+  // Auto-populate introducer name when member data is fetched
   useEffect(() => {
-    if (agentData?.data?.name) {
+    const member = introducerData?.data || (introducerData as any)?.member;
+    const memberName = member?.name || member?.Name || '';
+
+    if (memberName) {
       setForm((prev: any) => ({
         ...prev,
-        introducerName: agentData.data.name || '',
-        agentName: agentData.data.name || ''
+        introducerName: memberName
       }));
-      setAgentError(false);
+      setIntroducerError(false);
       // Reset fetch trigger after successful fetch
-      setShouldFetchAgent(false);
-    } else if (isAgentError && shouldFetchAgent) {
-      // Agent not found
-      setAgentError(true);
+      setShouldFetchIntroducer(false);
+    } else if (isIntroducerError && shouldFetchIntroducer) {
+      // Member not found
+      setIntroducerError(true);
       setForm((prev: any) => ({
         ...prev,
         introducerName: ''
       }));
-      setShouldFetchAgent(false);
+      setShouldFetchIntroducer(false);
     }
-  }, [agentData, isAgentError, shouldFetchAgent]);
+  }, [introducerData, isIntroducerError, shouldFetchIntroducer]);
 
   // Handle member info fetch
   const handleGetInfo = async (silent = false) => {
@@ -493,10 +528,10 @@ const AccountOpeningForm: React.FC<Props> = ({
     // If introducer code is changed, update the introducer code state
     if (field === 'introducer') {
       setIntroducerCode(value);
-      setAgentError(false); // Clear error when user types
+      setIntroducerError(false); // Clear error when user types
       // Clear introducer name and stop fetching if code is cleared
       if (!value) {
-        setShouldFetchAgent(false);
+        setShouldFetchIntroducer(false);
         setForm((prev: any) => ({
           ...prev,
           introducerName: ''
@@ -509,7 +544,7 @@ const AccountOpeningForm: React.FC<Props> = ({
   const handleIntroducerBlur = () => {
     if (form.introducer && form.introducer.trim().length > 0) {
       setIntroducerCode(form.introducer.trim());
-      setShouldFetchAgent(true);
+      setShouldFetchIntroducer(true);
     }
   };
 
@@ -579,6 +614,12 @@ const AccountOpeningForm: React.FC<Props> = ({
       return;
     }
 
+    // Mandatory Banking Requirement: Borrower must have an active operating bank account (SB/CA) before loan assignment
+    if (isLoanPage && (!primaryAccount || operatingAccounts.length === 0)) {
+      toast.error('Operating Bank Account Required: You must open a Savings Bank (SB) or Current Account (CA) before applying for or sanctioning a loan.');
+      return;
+    }
+
     if (isUser) {
       // Members must pay via Cashfree
       const orderData = {
@@ -597,6 +638,7 @@ const AccountOpeningForm: React.FC<Props> = ({
         introducer: form.introducer,
         agent: form.agent,
         joint_member: form.accountOperation === 'Any two' ? form.jointMember : null,
+        disburse_to: isLoanPage ? (disburseToAccount || primaryAccount?.account_no || null) : null,
       };
 
       createOrder(orderData, {
@@ -639,6 +681,7 @@ const AccountOpeningForm: React.FC<Props> = ({
         assigned_to: form.agent,
         account_amount: parseFloat(form.amount),
         joint_member: form.accountOperation === 'Any two' ? form.jointMember : null,
+        disburse_to: isLoanPage ? (disburseToAccount || primaryAccount?.account_no || null) : null,
       };
 
       const result = await createAccountMutation.mutateAsync(accountData);
@@ -1080,7 +1123,7 @@ const AccountOpeningForm: React.FC<Props> = ({
 
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      label="Amount"
+                      label={isLoanPage ? "Sanctioned Loan Amount (₹)" : "Amount"}
                       fullWidth
                       size="small"
                       type="number"
@@ -1120,6 +1163,114 @@ const AccountOpeningForm: React.FC<Props> = ({
                     </>
                   )}
 
+                  {/* Loan Disbursement Destination Account */}
+                  {isLoanPage && (
+                    <Grid item xs={12}>
+                      <Paper elevation={0} sx={{
+                        p: 2,
+                        borderRadius: '14px',
+                        bgcolor: primaryAccount ? '#f0fdf4' : '#fffbeb',
+                        border: `1.5px solid ${primaryAccount ? '#86efac' : '#fde68a'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1.5
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <StarIcon sx={{ color: primaryAccount ? '#16a34a' : '#d97706', fontSize: 24 }} />
+                            <Typography sx={{ fontWeight: 800, color: primaryAccount ? '#14532d' : '#78350f', fontSize: '0.92rem' }}>
+                              Loan Disbursement Destination (Operating Account)
+                            </Typography>
+                          </Box>
+                          {primaryAccount && (
+                            <Chip
+                              size="small"
+                              label="Auto-Transfers Upon Approval"
+                              sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.72rem' }}
+                            />
+                          )}
+                        </Box>
+
+                        {primaryAccount ? (
+                          <Box>
+                            <Typography variant="body2" sx={{ color: '#166534', mb: 1.5, fontSize: '0.84rem' }}>
+                              When this loan is approved/sanctioned, the loan amount (₹{Number(form.amount || 0).toLocaleString('en-IN')}) will transfer directly into the member's operating account.
+                            </Typography>
+
+                            {operatingAccounts.length > 1 ? (
+                              <FormControl fullWidth size="small" sx={accountInputStyle}>
+                                <InputLabel id="disburse-account-label">Select Disbursement Account</InputLabel>
+                                <Select
+                                  labelId="disburse-account-label"
+                                  label="Select Disbursement Account"
+                                  value={disburseToAccount || primaryAccount.account_no}
+                                  onChange={(e) => setDisburseToAccount(e.target.value)}
+                                >
+                                  {operatingAccounts.map((acc: any) => (
+                                    <MenuItem key={acc.account_no || acc.account_id} value={acc.account_no}>
+                                      {acc.is_primary ? '★ [PRIMARY] ' : ''}{acc.account_group_name || 'Operating A/C'}: {acc.account_no} (Balance: ₹{Number(acc.account_amount || 0).toLocaleString('en-IN')})
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            ) : (
+                              <Paper elevation={0} sx={{ p: 1.5, borderRadius: '10px', bgcolor: 'white', border: '1px solid #bbf7d0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box>
+                                  <Typography sx={{ fontWeight: 800, color: '#14532d', fontSize: '0.88rem' }}>
+                                    ★ Primary Account: {primaryAccount.account_no} ({primaryAccount.account_group_name || 'Operating A/C'})
+                                  </Typography>
+                                  <Typography sx={{ color: '#15803d', fontSize: '0.78rem' }}>
+                                    Default account created first for member
+                                  </Typography>
+                                </Box>
+                                <Typography sx={{ fontWeight: 800, color: '#14532d', fontSize: '0.9rem' }}>
+                                  Balance: ₹{Number(primaryAccount.account_amount || 0).toLocaleString('en-IN')}
+                                </Typography>
+                              </Paper>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box sx={{
+                            bgcolor: '#fef2f2',
+                            p: 2,
+                            borderRadius: '10px',
+                            border: '1.5px solid #fca5a5'
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5 }}>
+                              <Typography sx={{ fontSize: '1.3rem' }}>🛑</Typography>
+                              <Box>
+                                <Typography sx={{ fontWeight: 800, color: '#991b1b', fontSize: '0.92rem' }}>
+                                  Operating Bank Account (SB/CA) Required Before Loan Assignment
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#7f1d1d', mt: 0.5, fontSize: '0.82rem', lineHeight: 1.4 }}>
+                                  In banking regulations, every borrower must have an active Savings Bank (SB) or Current Account (CA) where loan funds are disbursed and from which repayments are serviced. This member has no active operating accounts.
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => {
+                                setForm((prev: any) => ({ ...prev, accountType: 'SB', amount: '1000' }));
+                                toast.info('Switched to Savings Bank (SB) account opening.');
+                              }}
+                              sx={{
+                                bgcolor: '#dc2626',
+                                color: 'white',
+                                fontWeight: 700,
+                                fontSize: '0.78rem',
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: '#b91c1c' }
+                              }}
+                            >
+                              Open Savings (SB) Account First
+                            </Button>
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+                  )}
+
                   {/* Introducer & Agent Section - Now visible but Read-Only for Members */}
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -1129,11 +1280,11 @@ const AccountOpeningForm: React.FC<Props> = ({
                       value={form.introducer}
                       onChange={(e) => !isUser && handleChange('introducer', e.target.value)}
                       onBlur={!isUser ? handleIntroducerBlur : undefined}
-                      error={agentError}
-                      helperText={agentError ? 'Agent not found' : ''}
+                      error={introducerError}
+                      helperText={introducerError ? 'Member not found' : ''}
                       InputProps={{
                         readOnly: isUser,
-                        endAdornment: isLoadingAgent ? (
+                        endAdornment: isLoadingIntroducer ? (
                           <InputAdornment position="end">
                             <CircularProgress size={20} />
                           </InputAdornment>
@@ -1230,14 +1381,14 @@ const AccountOpeningForm: React.FC<Props> = ({
                         size="large"
                         fullWidth={isMobile}
                         onClick={handleSubmit}
-                        disabled={!memberInfo || createAccountMutation.isPending || isOrderPending}
+                        disabled={!memberInfo || createAccountMutation.isPending || isOrderPending || (isLoanPage && (!primaryAccount || operatingAccounts.length === 0))}
                         sx={{
-                          background: theme.gradient,
+                          background: (isLoanPage && (!primaryAccount || operatingAccounts.length === 0)) ? '#cbd5e1' : theme.gradient,
                           px: { xs: 2.5, sm: 4 },
                           py: { xs: 1.2, sm: 1.5 },
                           fontWeight: 700,
                           borderRadius: '12px',
-                          boxShadow: theme.shadow,
+                          boxShadow: (isLoanPage && (!primaryAccount || operatingAccounts.length === 0)) ? 'none' : theme.shadow,
                           '&:hover': {
                             background: theme.secondary,
                             boxShadow: theme.shadow,
@@ -1246,7 +1397,13 @@ const AccountOpeningForm: React.FC<Props> = ({
                       >
                         {createAccountMutation.isPending || isOrderPending ? (
                           <CircularProgress size={24} sx={{ color: 'white' }} />
-                        ) : isUser ? 'Pay & Create Account' : 'Create Account'}
+                        ) : (isLoanPage && (!primaryAccount || operatingAccounts.length === 0)) ? (
+                          'Operating Account (SB) Required First'
+                        ) : isUser ? (
+                          'Pay & Create Account'
+                        ) : (
+                          'Create Account'
+                        )}
                       </Button>
                     </Box>
                   </Grid>

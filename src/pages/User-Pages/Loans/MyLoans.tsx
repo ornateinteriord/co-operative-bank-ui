@@ -992,6 +992,39 @@ const MyLoans: React.FC = () => {
                       </Box>
                     </Box>
 
+                    {/* Disbursed to Primary Account Badge */}
+                    {loan.loan_disbursed_to && (
+                      <Box
+                        sx={{
+                          mb: 1.5,
+                          px: 1.5,
+                          py: 0.8,
+                          borderRadius: '10px',
+                          bgcolor: 'rgba(16, 185, 129, 0.08)',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 1
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46' }}>
+                          Disbursed to Primary A/C:
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={loan.loan_disbursed_to}
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            bgcolor: '#10b981',
+                            color: 'white',
+                            height: 22
+                          }}
+                        />
+                      </Box>
+                    )}
+
                     {/* Progress Bar */}
                     <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
@@ -1447,6 +1480,24 @@ const MyLoans: React.FC = () => {
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
                         {selectedLoan.branch_id || '001-HO MAIN BRANCH'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        py: 0.8,
+                        borderBottom: '1px dashed #e2e8f0',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
+                        Disbursed To Account:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 800, color: selectedLoan.loan_disbursed_to ? '#15803d' : '#64748b', fontSize: '0.85rem' }}>
+                        {selectedLoan.loan_disbursed_to ? `Primary A/C: ${selectedLoan.loan_disbursed_to}` : 'Pending Sanction'}
                       </Typography>
                     </Box>
                   </Grid>

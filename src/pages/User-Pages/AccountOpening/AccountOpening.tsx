@@ -5,12 +5,14 @@ import {
   Box, Paper, Typography, Container, Button, Grid, IconButton,
   Divider, TextField, Dialog, DialogTitle, DialogContent,
   DialogActions, FormControl, InputLabel, Select, MenuItem,
-  CircularProgress, InputAdornment
+  CircularProgress, InputAdornment, Chip, Tooltip
 } from '@mui/material';
 import TokenService from '../../../api/token/tokenService';
 import HistoryIcon from '@mui/icons-material/History';
 import DownloadIcon from '@mui/icons-material/Download';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { toast } from 'react-toastify';
 import * as MemberQueries from '../../../queries/Member';
 import { useGetTransactionDetails, useTransferMoney } from '../../../api/Memeber';
@@ -148,6 +150,31 @@ const UserAccountOpening = () => {
     });
     return accounts;
   }, [myAccountsData]);
+
+  // Operating accounts list (eligible for being primary, e.g. SB, CA)
+  const operatingAccounts = useMemo(() => {
+    return allMyAccounts.filter((acc: any) => {
+      const gName = (acc.groupName || '').toUpperCase();
+      const aNo = (acc.account_no || '').toUpperCase();
+      const aId = (acc.account_id || '').toUpperCase();
+      const isLoan = gName.includes('LOAN') || gName.includes('OVERDRAFT') ||
+        aId.startsWith('LOAN') || /^(PL|ML|GL|BL|VL|EL|AL|PGL|PGLD|OD|LN)/i.test(aNo);
+      return !isLoan;
+    });
+  }, [allMyAccounts]);
+
+  const setPrimaryAccountMutation = MemberQueries.useSetPrimaryAccount();
+
+  const handleSetPrimary = async (accNo: string) => {
+    if (!accNo) return;
+    try {
+      await setPrimaryAccountMutation.mutateAsync({ account_no: accNo });
+      toast.success(`Account ${accNo} selected as your Primary Account! Loan amounts will transfer here.`);
+      refetchAccounts();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to update primary account');
+    }
+  };
 
   const transferMoneyMutation = useTransferMoney();
 
@@ -290,6 +317,57 @@ const UserAccountOpening = () => {
               </Box>
             ) : existingAccount ? (
               <Box>
+                {/* Operating Accounts Switcher Banner (SB, CA, etc.) */}
+                {operatingAccounts.length > 1 && (
+                  <Paper elevation={0} sx={{
+                    p: 2,
+                    mb: 3,
+                    borderRadius: '16px',
+                    bgcolor: 'rgba(234, 179, 8, 0.08)',
+                    border: '1px solid rgba(234, 179, 8, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 1.5
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <StarIcon sx={{ color: '#d97706', fontSize: 28 }} />
+                      <Box>
+                        <Typography sx={{ fontWeight: 700, color: '#92400e', fontSize: '0.9rem' }}>
+                          Primary Operating Account
+                        </Typography>
+                        <Typography sx={{ color: '#b45309', fontSize: '0.8rem' }}>
+                          Approved loan funds will automatically transfer into your primary account. Click an account to switch primary.
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      {operatingAccounts.map((acc: any) => {
+                        const isThisPrimary = Boolean(acc.is_primary);
+                        return (
+                          <Chip
+                            key={acc.account_no || acc.account_id}
+                            label={`${acc.groupName || 'Account'}: ${acc.account_no}`}
+                            color={isThisPrimary ? "warning" : "default"}
+                            variant={isThisPrimary ? "filled" : "outlined"}
+                            icon={isThisPrimary ? <StarIcon sx={{ '&&': { color: '#78350f' } }} /> : undefined}
+                            onClick={() => !isThisPrimary && handleSetPrimary(acc.account_no)}
+                            clickable={!isThisPrimary}
+                            sx={{
+                              fontWeight: isThisPrimary ? 800 : 600,
+                              cursor: isThisPrimary ? 'default' : 'pointer',
+                              bgcolor: isThisPrimary ? '#fef08a' : 'white',
+                              color: isThisPrimary ? '#78350f' : '#475569',
+                              borderColor: isThisPrimary ? '#ca8a04' : '#cbd5e1'
+                            }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Paper>
+                )}
+
                 {/* Account Overview Header */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
                   <Grid item xs={12} md={8}>
@@ -328,13 +406,63 @@ const UserAccountOpening = () => {
                         <AccountBalanceWalletIcon sx={{ color: 'rgba(255,255,255,0.3)', fontSize: 40 }} />
                       </Box>
 
-                      <Box sx={{ mt: 1 }}>
-                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                          Account Number
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '1px' }}>
-                          {existingAccount.account_no === 'NaN' || !existingAccount.account_no ? existingAccount.account_id : existingAccount.account_no}
-                        </Typography>
+                      <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 1 }}>
+                        <Box>
+                          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            Account Number
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '1px' }}>
+                            {existingAccount.account_no === 'NaN' || !existingAccount.account_no ? existingAccount.account_id : existingAccount.account_no}
+                          </Typography>
+                        </Box>
+
+                        {/* Primary Account Status / Selection */}
+                        <Box>
+                          {existingAccount.is_primary ? (
+                            <Tooltip title="Sanctioned loan amounts will automatically transfer to this account">
+                              <Chip
+                                icon={<StarIcon sx={{ '&&': { color: '#fef08a' } }} />}
+                                label="PRIMARY ACCOUNT"
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(234, 179, 8, 0.25)',
+                                  color: '#fef08a',
+                                  fontWeight: 800,
+                                  fontSize: '0.72rem',
+                                  border: '1px solid rgba(234, 179, 8, 0.6)',
+                                  letterSpacing: '0.5px'
+                                }}
+                              />
+                            </Tooltip>
+                          ) : ['SB', 'CA', 'SAVING', 'CURRENT'].includes((existingAccount.account_group_name || accountType).toUpperCase()) ? (
+                            <Tooltip title="Choose this account to receive future loan disbursements">
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => handleSetPrimary(existingAccount.account_no)}
+                                disabled={setPrimaryAccountMutation.isPending}
+                                startIcon={<StarBorderIcon />}
+                                sx={{
+                                  color: 'white',
+                                  borderColor: 'rgba(255,255,255,0.5)',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  py: 0.3,
+                                  px: 1.2,
+                                  borderRadius: '20px',
+                                  textTransform: 'none',
+                                  '&:hover': {
+                                    borderColor: '#fef08a',
+                                    color: '#fef08a',
+                                    bgcolor: 'rgba(255,255,255,0.1)'
+                                  }
+                                }}
+                              >
+                                {setPrimaryAccountMutation.isPending ? 'Setting...' : 'Set as Primary'}
+                              </Button>
+                            </Tooltip>
+                          ) : null}
+                        </Box>
                       </Box>
 
                       <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 1 }} />
