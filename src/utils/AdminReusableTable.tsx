@@ -103,12 +103,12 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} sx={{ mb: 2 }}>
         <Box>
           {title && (
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a237e', mb: 1, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}>
+            <Typography variant="h4" sx={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, color: '#0a2558', mb: 0.5, fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
               {title}
             </Typography>
           )}
           {selectedCount > 0 && (
-            <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5, fontWeight: 600 }}>
               {selectedCount} selected
             </Typography>
           )}
@@ -116,7 +116,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
 
         <Stack direction="row" spacing={1}>
           {onRefresh && (
-            <IconButton onClick={onRefresh} size="small">
+            <IconButton onClick={onRefresh} size="small" sx={{ color: '#0a2558' }}>
               <RefreshIcon />
             </IconButton>
           )}
@@ -137,7 +137,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             flex: 1,
             maxWidth: { xs: '100%', sm: 350 },
             '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
+              borderRadius: '10px',
               backgroundColor: '#f8fafc',
               '&:hover': {
                 backgroundColor: '#f1f5f9',
@@ -160,10 +160,11 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             size="small"
             sx={{
               textTransform: 'none',
-              borderRadius: 2,
-              px: 2,
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              '&:hover': { background: 'linear-gradient(135deg, #0369a1 0%, #075985 100%)' }
+              borderRadius: '10px',
+              fontWeight: 700,
+              px: 2.5,
+              background: 'linear-gradient(135deg, #0a2558 0%, #1e40af 100%)',
+              '&:hover': { background: 'linear-gradient(135deg, #061638 0%, #0a2558 100%)' }
             }}
           >
             Search
@@ -436,9 +437,9 @@ const AdminReusableTable = <T extends Record<string, any>>({
         width: '100%',
         overflow: 'hidden',
         border: '1px solid #e2e8f0',
-        borderRadius: 2,
+        borderRadius: '16px',
         backgroundColor: '#ffffff',
-        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
         position: 'relative', // Ensure relative positioning for the absolute loader
         ...sx,
       }}
@@ -477,10 +478,13 @@ const AdminReusableTable = <T extends Record<string, any>>({
                   sx={{
                     minWidth: column.minWidth,
                     backgroundColor: '#f8fafc',
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    color: '#334155',
-                    borderBottom: '2px solid #e2e8f0',
+                    fontFamily: 'Outfit, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    letterSpacing: '0.3px',
+                    textTransform: 'uppercase',
+                    color: '#0a2558',
+                    borderBottom: '2px solid #cbd5e1',
                   }}
                 >
                   {column.sortable ? (

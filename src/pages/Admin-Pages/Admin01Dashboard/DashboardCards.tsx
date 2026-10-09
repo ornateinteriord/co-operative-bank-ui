@@ -1,10 +1,11 @@
-import { Box, Grid, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
+import { Box, Grid, Dialog, DialogTitle, DialogContent, IconButton, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from './DashboardCard';
 import DescriptionIcon from '@mui/icons-material/Description';
 import StorageIcon from '@mui/icons-material/Storage';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import CloseIcon from '@mui/icons-material/Close';
 import DashboardTable from './DashboardTable';
 import TimelineComponent from '../../../utils/TimeLineComponent';
@@ -27,7 +28,7 @@ const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
     dateOfJoining: member?.date_of_joining
       ? new Date(member.date_of_joining).toLocaleDateString('en-GB')
       : 'N/A',
-    emailId: member?.emailid || '',
+    emailId: member?.emailid || '-',
     mobileNo: member?.contactno || 'N/A',
     status: member?.status || 'active',
   }));
@@ -47,236 +48,274 @@ const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
       name: 'Name',
       selector: (row: any) => row.name,
       sortable: true,
+      minWidth: '120px',
+      grow: 1,
       style: {
         fontWeight: '600',
-        color: '#1a202c',
+        color: '#1e293b',
       },
     },
     {
-      name: 'Member Num',
+      name: 'Member ID',
       selector: (row: any) => row.memberNum,
       sortable: true,
-      center: true,
+      minWidth: '110px',
+      grow: 1,
       style: {
-        color: '#6366f1',
-        fontWeight: '500',
+        color: '#0a2558',
+        fontWeight: '600',
       },
     },
     {
       name: 'Date Of Joining',
       selector: (row: any) => row.dateOfJoining,
       sortable: true,
-      center: true,
+      minWidth: '135px',
+      grow: 1,
     },
     {
-      name: 'Email id',
+      name: 'Email ID',
       selector: (row: any) => row.emailId,
       sortable: true,
+      minWidth: '160px',
+      grow: 1.5,
     },
     {
-      name: 'Mobile no',
+      name: 'Mobile No',
       selector: (row: any) => row.mobileNo,
       sortable: true,
-      center: true,
+      minWidth: '120px',
+      grow: 1,
     },
     {
       name: 'Status',
       selector: (row: any) => row.status,
       sortable: true,
-      center: true,
+      minWidth: '95px',
+      grow: 0.8,
       cell: (row: any) => (
         <Box
           sx={{
-            px: 2,
-            py: 0.75,
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-            color: 'white',
-            fontWeight: '600',
+            px: 1.5,
+            py: 0.4,
+            borderRadius: '6px',
+            backgroundColor: row.status?.toLowerCase() === 'active' ? '#ecfdf5' : '#fef2f2',
+            color: row.status?.toLowerCase() === 'active' ? '#059669' : '#dc2626',
+            fontWeight: 600,
             fontSize: '0.75rem',
             textAlign: 'center',
-            minWidth: '70px',
-            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
           }}
         >
-          {row.status.toUpperCase()}
+          {row.status?.toUpperCase() || 'ACTIVE'}
         </Box>
       ),
     },
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Stats Cards Row */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {/* Total Members Card */}
+    <Box sx={{ px: { xs: 2, md: 3 }, pb: 3 }}>
+      {/* 4 Simple Stats Cards */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
-            icon={<SupervisorAccountIcon sx={{ color: 'white' }} />}
+            icon={<SupervisorAccountIcon />}
             title="Total Members"
             status="Active"
             description={`${counts.totalMembers} Members`}
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
 
-        {/* Total Accounts Card */}
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
-            icon={<DescriptionIcon sx={{ color: 'white' }} />}
+            icon={<DescriptionIcon />}
             title="Total Accounts"
             status="Active"
             description={`${counts.totalAccounts} Accounts`}
             showActionButton={true}
-            actionButtonLabel="More"
+            actionButtonLabel="Breakdown"
             onActionClick={() => setAccountTypesDialogOpen(true)}
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
 
-        {/* Total Agents Card */}
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
-            icon={<SupervisorAccountIcon sx={{ color: 'white' }} />}
+            icon={<SupervisorAccountIcon />}
             title="Total Agents"
             status="Active"
             description={`${counts.totalAgents} Agents`}
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
 
-        {/* Cash Balance Card */}
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
-            icon={<SupervisorAccountIcon sx={{ color: 'white' }} />}
+            icon={<CurrencyRupeeIcon />}
             title="Cash Balance"
             status="Active"
-            description={`₹ ${counts.closingBalance || 0}`}
+            description={`₹ ${Number(counts.closingBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
       </Grid>
 
-      {/* Second Row with Two Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {/* Members Card with Table as Footer */}
+      {/* Second Row: Members Table & Accounts Timeline */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} md={8}>
           <DashboardCard
-            icon={<StorageIcon sx={{ color: 'white' }} />}
+            icon={<StorageIcon />}
             title="Members"
-            status="Summary of recent members"
+            status="Recent members"
             showActionButton={true}
-            actionButtonLabel="More Information"
+            actionButtonLabel="View All"
             onActionClick={() => navigate('/admin_01/members')}
             showFooterContent={true}
             footerContent={
-              <Box sx={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                mt: 2,
-                overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.1)',
-              }}>
+              <Box
+                sx={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '10px',
+                  mt: 1,
+                  overflowX: 'auto',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
                 <DashboardTable
                   data={membersData}
                   columns={membersColumns}
-                  sx={{
-                    '& .rdt_Table': {
-                      borderRadius: '12px',
+                  customStyles={{
+                    headRow: {
+                      style: {
+                        backgroundColor: '#0a2558',
+                        minHeight: '46px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                      },
                     },
+                    headCells: {
+                      style: {
+                        backgroundColor: '#0a2558',
+                        color: '#ffffff',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        letterSpacing: '0.02em',
+                        paddingLeft: '12px',
+                        paddingRight: '12px',
+                      },
+                    },
+                    cells: {
+                      style: {
+                        paddingLeft: '12px',
+                        paddingRight: '12px',
+                        fontSize: '13px',
+                        color: '#1e293b',
+                      },
+                    },
+                    rows: {
+                      style: {
+                        minHeight: '46px',
+                        '&:hover': {
+                          backgroundColor: '#f8fafc',
+                        },
+                      },
+                    },
+                    pagination: {
+                      style: {
+                        minHeight: '44px',
+                        borderTop: '1px solid #e2e8f0',
+                        color: '#64748b',
+                      },
+                    },
+                  }}
+                  sx={{
                     '& .rdt_TableHead': {
-                      background: '#667eea',
-                      '& .rdt_TableCol': {
-                        color: '#4b5563',
-                        fontWeight: '600',
-                        fontSize: '0.875rem',
-                        borderBottom: '2px solid rgba(99, 102, 241, 0.2)',
-                      }
+                      backgroundColor: '#0a2558',
+                    },
+                    '& .rdt_TableHeadRow': {
+                      backgroundColor: '#0a2558',
+                      minHeight: '46px',
+                    },
+                    '& .rdt_TableCol': {
+                      backgroundColor: '#0a2558 !important',
+                      color: '#ffffff !important',
+                      fontWeight: '700 !important',
+                      fontSize: '0.85rem !important',
+                      letterSpacing: '0.02em',
+                      '&:hover': {
+                        color: '#ffffff !important',
+                      },
+                      '& svg': {
+                        fill: '#ffffff !important',
+                      },
+                    },
+                    '& .rdt_TableCol_Sortable': {
+                      color: '#ffffff !important',
+                      '&:hover': {
+                        color: '#ffffff !important',
+                      },
+                      '& span': {
+                        color: '#ffffff !important',
+                      },
+                      '& svg': {
+                        fill: '#ffffff !important',
+                      },
+                      '& > div:first-of-type': {
+                        overflow: 'visible',
+                        whiteSpace: 'nowrap',
+                      },
                     },
                     '& .rdt_TableRow': {
-                      '&:nth-of-type(even)': {
-                        background: 'rgba(99, 102, 241, 0.02)',
-                      },
                       '&:hover': {
-                        background: 'rgba(99, 102, 241, 0.04)',
-                      }
-                    }
+                        backgroundColor: '#f8fafc',
+                      },
+                    },
                   }}
                 />
               </Box>
             }
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
 
-        {/* Accounts Card with Timeline as Footer */}
         <Grid item xs={12} md={4}>
           <DashboardCard
-            icon={<DescriptionIcon sx={{ color: 'white' }} />}
+            icon={<DescriptionIcon />}
             title="Accounts"
-            status="Latest created accounts"
+            status="Recent accounts"
             showFooterContent={true}
             footerContent={
-              <Box sx={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                mt: 2,
-                p: 3,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.1)',
-              }}>
+              <Box
+                sx={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '10px',
+                  mt: 1,
+                  p: 2.5,
+                  border: '1px solid #e2e8f0',
+                }}
+              >
                 <TimelineComponent
                   data={accountsTimelineData}
                   sx={{
                     '& .timeline-item': {
-                      borderLeft: '3px solid #667eea',
+                      borderLeft: '3px solid #0a2558',
                       paddingLeft: '16px',
-                      '&:hover': {
-                        background: 'rgba(99, 102, 241, 0.04)',
-                        borderRadius: '8px',
-                      }
                     }
                   }}
                 />
               </Box>
             }
             sx={{
-              background: '#667eea',
-              borderRadius: '16px',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#0a2558',
             }}
           />
         </Grid>
@@ -290,137 +329,77 @@ const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '16px',
-            background: '#667eea',
+            borderRadius: '12px',
           }
         }}
       >
         <DialogTitle
           sx={{
-            background: '#667eea',
+            background: '#0a2558',
             color: 'white',
-            position: 'relative',
-            py: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            py: 2,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <DescriptionIcon sx={{ fontSize: 32 }} />
-              <Box>
-                <Box sx={{ fontSize: '24px', fontWeight: 700 }}>Account Types Breakdown</Box>
-                <Box sx={{ fontSize: '14px', opacity: 0.9, mt: 0.5 }}>
-                  Detailed count for each account type
-                </Box>
-              </Box>
-            </Box>
-            <IconButton
-              onClick={() => setAccountTypesDialogOpen(false)}
-              sx={{
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                }
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Account Types Breakdown
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.8 }}>
+              Account counts by scheme
+            </Typography>
           </Box>
+          <IconButton
+            onClick={() => setAccountTypesDialogOpen(false)}
+            sx={{ color: 'white' }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 3, mt: 2 }}>
+        <DialogContent sx={{ p: 3, bgcolor: '#f8fafc' }}>
           <Grid container spacing={2}>
-            {(counts?.accountsByType || []).map((accountType: AccountByType, index: number) => {
-              // Define gradient colors for different account types
-              const gradients = [
-                'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
-                'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)',
-                'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
-                'linear-gradient(135deg, #f43f5e 0%, #ef4444 100%)',
-                'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-                'linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%)',
-                'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
-                'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              ];
-
-              return (
-                <Grid item xs={12} sm={6} md={4} key={accountType.account_type || index}>
-                  <Box
-                    sx={{
-                      background: gradients[index % gradients.length],
-                      borderRadius: '12px',
-                      p: 3,
-                      color: 'white',
-                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
-                      }
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Box
-                        sx={{
-                          fontSize: '14px',
-                          opacity: 0.9,
-                          fontWeight: 500,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        {accountType.account_group_name || 'Unknown'}
-                      </Box>
-                      <Box
-                        sx={{
-                          fontSize: '32px',
-                          fontWeight: 700,
-                          lineHeight: 1,
-                        }}
-                      >
-                        {accountType.count}
-                      </Box>
-                    </Box>
-                  </Box>
-                </Grid>
-              );
-            })}
+            {(counts?.accountsByType || []).map((accountType: AccountByType, index: number) => (
+              <Grid item xs={12} sm={6} md={4} key={accountType.account_type || index}>
+                <Box
+                  sx={{
+                    background: '#ffffff',
+                    borderRadius: '10px',
+                    p: 2.5,
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
+                    {accountType.account_group_name || accountType.account_type || 'Account'}
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: '#0a2558', mt: 0.5 }}>
+                    {accountType.count}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
           </Grid>
 
-          {/* Summary Box */}
           <Box
             sx={{
               mt: 3,
-              p: 3,
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-              border: '2px solid #d1d5db',
+              p: 2,
+              borderRadius: '8px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Box>
-                <Box sx={{ fontSize: '16px', fontWeight: 600, color: '#374151', mb: 0.5 }}>
-                  Total Account Types
-                </Box>
-                <Box sx={{ fontSize: '14px', color: '#6b7280' }}>
-                  {counts.accountsByType.length} different types
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  fontSize: '36px',
-                  fontWeight: 700,
-                  color: '#6366f1',
-                }}
-              >
-                {counts.totalAccounts}
-              </Box>
-            </Box>
+            <Typography sx={{ fontWeight: 600, color: '#334155' }}>
+              Total Accounts
+            </Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', color: '#0a2558' }}>
+              {counts.totalAccounts}
+            </Typography>
           </Box>
         </DialogContent>
       </Dialog>

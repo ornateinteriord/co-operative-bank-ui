@@ -14,10 +14,17 @@ import {
     MenuItem,
     Divider,
     CircularProgress,
-    Alert
+    Alert,
+    Chip
 } from '@mui/material';
 import { MaturityAccount } from '../../types';
-import { useCreateMaturityPaymentWithCashfree, useCloseAccount, useUpdateAccount } from '../../queries/admin';
+import {
+    useCreateMaturityPaymentWithCashfree,
+    useCloseAccount,
+    useUpdateAccount,
+    useGetPrematureClosurePreview,
+    useProcessPrematureClosure
+} from '../../queries/admin';
 import { toast } from 'react-toastify';
 
 interface AccountCloseDialogProps {
@@ -41,6 +48,13 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
     const createMaturityPaymentMutation = useCreateMaturityPaymentWithCashfree();
     const closeAccountMutation = useCloseAccount();
     const updateAccountMutation = useUpdateAccount();
+    const processPrematureClosureMutation = useProcessPrematureClosure();
+
+    // Fetch premature closure penalty preview from backend when pre-maturity
+    const { data: previewResponse, isLoading: isPreviewLoading } = useGetPrematureClosurePreview(
+        account?.account_id,
+        open && !isMatured
+    );
 
     // Reset form when dialog opens
     useEffect(() => {
@@ -52,20 +66,30 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
 
     if (!account) return null;
 
+    const preview = previewResponse?.data;
+
     // Calculate amounts
     const principalAmount = account.account_amount || 0;
     const interestRate = account.interest_rate || 0;
 
-    // Calculate interest based on maturity status
     let interestAmount = 0;
+    let penaltyAmount = 0;
+    let totalPayout = principalAmount;
+    let revisedRate = interestRate;
+
     if (isMatured && principalAmount > 0) {
-        // Simple interest calculation: P * R * T / 100
-        // Duration is in months, convert to years
+        // Simple interest calculation at full contract rate
         const durationInYears = (account.duration || 12) / 12;
-        interestAmount = (principalAmount * interestRate * durationInYears) / 100;
+        interestAmount = Math.round((principalAmount * interestRate * durationInYears) / 100 * 100) / 100;
+        totalPayout = principalAmount + interestAmount;
+    } else if (!isMatured && preview) {
+        // Use exact calculated values from bankingRules
+        interestAmount = preview.interest_earned || 0;
+        penaltyAmount = preview.penalty_amount || 0;
+        totalPayout = preview.net_payout || principalAmount;
+        revisedRate = preview.revised_interest_rate;
     }
 
-    const totalPayout = principalAmount + interestAmount;
     const hasBalance = principalAmount > 0;
 
     const handleClose = async () => {
@@ -75,7 +99,6 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
             // If balance is 0, just close the account directly without payment
             if (!hasBalance) {
                 const response: any = await closeAccountMutation.mutateAsync(account.account_id);
-
                 if (response && response.success) {
                     toast.success('Account closed successfully');
                     onSuccess();
@@ -86,7 +109,26 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                 return;
             }
 
-            // CASH PAYMENT: Directly close the account without external payout
+            // PREMATURE CLOSURE FLOW (Calls banking rules premature closure endpoint)
+            if (!isMatured) {
+                const response: any = await processPrematureClosureMutation.mutateAsync({
+                    account_id: account.account_id,
+                    member_id: account.member_id,
+                    payment_method: paymentMode.toLowerCase(),
+                    reference_no: paymentReference || undefined,
+                });
+
+                if (response && response.success) {
+                    toast.success(response.message || `Premature closure completed. Net payout: ₹${totalPayout.toLocaleString('en-IN')}`);
+                    onSuccess();
+                    onClose();
+                } else {
+                    toast.error(response?.message || 'Failed to process premature closure');
+                }
+                return;
+            }
+
+            // NORMAL MATURITY PAYMENT FLOW
             if (paymentMode === 'Cash') {
                 const response: any = await updateAccountMutation.mutateAsync({
                     accountId: account.account_id,
@@ -111,7 +153,7 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                 return;
             }
 
-            // DIGITAL PAYMENT (Bank Transfer, UPI, Cheque): Use maturity payment API for external payout
+            // DIGITAL MATURITY PAYMENT
             const paymentMethodMap: Record<string, string> = {
                 'Bank Transfer': 'online',
                 'UPI': 'online',
@@ -129,27 +171,19 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                 reference_no: paymentReference || undefined,
             };
 
-            // Call the backend to process the digital maturity payment
             const response: any = await createMaturityPaymentMutation.mutateAsync(maturityPaymentData);
-
-            // Check if response is successful
             if (response && response.success) {
                 toast.success(response.message || `Maturity payment of ₹${totalPayout.toLocaleString('en-IN')} processed successfully`);
                 onSuccess();
                 onClose();
             } else {
-                // Show specific error for digital payout failure
                 toast.error(response?.message || 'Digital payout failed. Please try again or use Cash payment.');
             }
         } catch (error: any) {
-            // If digital payment fails, suggest using cash
-            if (paymentMode !== 'Cash') {
-                toast.error(error?.message || 'Digital payout failed. Please try again or use Cash payment.');
-            } else {
-                toast.error(error?.message || 'Failed to close account');
-            }
+            toast.error(error?.message || 'Failed to process account closure');
         }
     };
+
 
     const isLoading = createMaturityPaymentMutation.isPending || closeAccountMutation.isPending || updateAccountMutation.isPending;
 
@@ -195,10 +229,10 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                                     <>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                             <Typography variant="body2">Interest Rate:</Typography>
-                                            <Typography variant="body2">{interestRate}%</Typography>
+                                            <Typography variant="body2">{interestRate}% p.a.</Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                            <Typography variant="body2">Interest Earned:</Typography>
+                                            <Typography variant="body2">Maturity Interest Earned:</Typography>
                                             <Typography variant="body2" color="success.main" fontWeight={600}>
                                                 + ₹{interestAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                             </Typography>
@@ -206,10 +240,48 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                                     </>
                                 )}
 
+                                {!isMatured && preview && (
+                                    <>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="body2">Elapsed Tenure:</Typography>
+                                            <Typography variant="body2">
+                                                {preview.elapsed_months} / {preview.total_tenure_months || account.duration || 12} months
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="body2">Contract vs Penal Rate:</Typography>
+                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                                <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                                                    {preview.contract_interest_rate}%
+                                                </Typography>
+                                                <Chip label={`${preview.revised_interest_rate}% p.a.`} size="small" color="warning" />
+                                            </Box>
+                                        </Box>
+                                        {interestAmount > 0 && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Accrued Interest (Revised):</Typography>
+                                                <Typography variant="body2" color="success.main" fontWeight={600}>
+                                                    + ₹{interestAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                        {penaltyAmount > 0 && (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Typography variant="body2">Early Closure Penalty:</Typography>
+                                                <Typography variant="body2" color="error.main" fontWeight={600}>
+                                                    - ₹{penaltyAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                    </>
+                                )}
+
                                 <Divider sx={{ my: 1 }} />
 
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="body1" fontWeight={700}>Total Payout:</Typography>
+                                    <Typography variant="body1" fontWeight={700}>
+                                        {isMatured ? 'Total Payout:' : 'Net Premature Payout:'}
+                                    </Typography>
                                     <Typography variant="body1" fontWeight={700} color="primary">
                                         ₹{totalPayout.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                     </Typography>
@@ -250,8 +322,8 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
                 )}
 
                 {!isMatured && hasBalance && (
-                    <Alert severity="warning" sx={{ mt: 2 }}>
-                        <strong>Pre-Maturity Closure:</strong> No interest will be paid as the account is being closed before maturity.
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                        <strong>Premature Closure Rule:</strong> As per Nidhi banking rules, interest is calculated at a reduced rate of {revisedRate}% p.a. for the elapsed {preview?.elapsed_months || 0} months.
                     </Alert>
                 )}
             </DialogContent>

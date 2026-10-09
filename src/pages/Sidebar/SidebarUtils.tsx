@@ -390,6 +390,7 @@ export const Admin01SideBarMenuItems: SideBarMenuItemType[] = [
       { name: "Standing Instruction", path: "/admin/banking/standing-instruction", icon: <LucideIcons.CalendarClock /> },
       { name: "Pay Demand", path: "/admin/banking/pay-demand", icon: <LucideIcons.HandCoins /> },
       { name: "Passbook Printing", path: "/admin_01/passbook", icon: <LucideIcons.BookOpen /> },
+      { name: "Banking Operations & Crons", path: "/admin_01/banking/operations", icon: <LucideIcons.Activity /> },
     ],
   },
   {

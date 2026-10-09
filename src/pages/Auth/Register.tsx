@@ -663,7 +663,7 @@ const Register = () => {
 
                 {/* Register Button */}
                 <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button
+                    <Button
                     type="submit"
                     variant="contained"
                     fullWidth
@@ -671,27 +671,28 @@ const Register = () => {
                     sx={{
                       mt: 1,
                       mb: 2,
-                      background: "linear-gradient(135deg, #FFC000 0%, #E6A800 100%)",
-                      color: "#0a2558",
+                      py: 1.4,
+                      background: "linear-gradient(135deg, #0a2558 0%, #1e40af 100%)",
+                      color: "#ffffff",
                       fontWeight: 800,
                       fontSize: "1rem",
-                      padding: "12px",
-                      borderRadius: "8px",
+                      borderRadius: "12px",
                       textTransform: "none",
-                      boxShadow: "0 8px 16px rgba(255, 192, 0, 0.3)",
-                      transition: "all 0.3s ease",
+                      letterSpacing: "0.3px",
+                      boxShadow: "0 8px 20px rgba(10, 37, 88, 0.3)",
+                      transition: "all 0.25s ease",
                       "&:hover": {
-                        background: "linear-gradient(135deg, #FFCE33 0%, #FFC000 100%)",
+                        background: "linear-gradient(135deg, #061638 0%, #0a2558 100%)",
                         transform: "translateY(-2px)",
-                        boxShadow: "0 12px 20px rgba(255, 192, 0, 0.4)",
+                        boxShadow: "0 12px 28px rgba(10, 37, 88, 0.4)",
                       },
                       "&:disabled": {
-                        background: "#e2e8f0",
-                        color: "#94a3b8"
+                        background: "#cbd5e1",
+                        color: "#64748b"
                       }
                     }}
                   >
-                    {isPending ? "Registering..." : "Register"}
+                    {isPending ? "Creating Account..." : "Submit Online Application"}
                   </Button>
                 </Grid>
               </Grid>

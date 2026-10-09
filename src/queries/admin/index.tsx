@@ -517,3 +517,81 @@ export const useCreateMaturityPaymentWithCashfree = () => {
         },
     });
 };
+
+// ==================== PREMATURE CLOSURE ====================
+
+export const useGetPrematureClosurePreview = (accountId?: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ["prematureClosurePreview", accountId],
+        queryFn: async () => {
+            if (!accountId) return null;
+            return await useApi<any>("GET", `/cash-transactions/premature-closure/preview?account_id=${accountId}`);
+        },
+        enabled: enabled && !!accountId,
+    });
+};
+
+export const useProcessPrematureClosure = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (closureData: any) => {
+            return await useApi<any>("POST", "/cash-transactions/premature-closure", closureData);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["preMaturityAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["postMaturityAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["accounts"] });
+        },
+    });
+};
+
+// ==================== CERTIFICATES & NOC ====================
+
+export const useGetDepositCertificate = (accountId?: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ["depositCertificate", accountId],
+        queryFn: async () => {
+            if (!accountId) return null;
+            return await useApi<any>("GET", `/admin/accounts/${accountId}/certificate`);
+        },
+        enabled: enabled && !!accountId,
+    });
+};
+
+export const useGetLoanNOC = (accountId?: string, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: ["loanNOC", accountId],
+        queryFn: async () => {
+            if (!accountId) return null;
+            return await useApi<any>("GET", `/admin/loans/${accountId}/noc`);
+        },
+        enabled: enabled && !!accountId,
+    });
+};
+
+// ==================== BANKING SCHEDULER MANAGEMENT ====================
+
+export const useGetSchedulerStatus = () => {
+    return useQuery({
+        queryKey: ["bankingSchedulerStatus"],
+        queryFn: async () => {
+            return await useApi<any>("GET", "/admin/banking/scheduler/status");
+        },
+    });
+};
+
+export const useRunBankingJob = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (jobType: "maturity" | "dormant" | "overdue" | "rd-penalty" | "sb-interest") => {
+            return await useApi<any>("POST", `/admin/banking/scheduler/run-${jobType}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bankingSchedulerStatus"] });
+            queryClient.invalidateQueries({ queryKey: ["preMaturityAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["postMaturityAccounts"] });
+            queryClient.invalidateQueries({ queryKey: ["accounts"] });
+        },
+    });
+};
+

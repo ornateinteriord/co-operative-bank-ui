@@ -1,12 +1,9 @@
 import {
   Box,
   Button,
-  InputAdornment,
   TextField,
   Typography,
 } from "@mui/material";
-import EmailIcon from "@mui/icons-material/Email";
-import LockIcon from "@mui/icons-material/Lock";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useState } from "react";
 import { MuiOtpInput } from "mui-one-time-password-input";
@@ -21,7 +18,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState<Record<string, string>>({});
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -38,7 +35,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
     try {
       if (step === 1 && formData.email) {
         mutate({ email: formData.email });
-        setStep(2); // Advance immediately to allow OTP input
+        setStep(2);
       } else if (step === 2 && otp.length === 6) {
         mutate(
           { email: formData.email, otp },
@@ -54,7 +51,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
         );
       } else if (step === 3) {
         if (formData.password?.length <= 5) {
-          setErrorMessage("Password must be at least 6 characters*");
+          setErrorMessage("Password must be at least 6 characters");
           return;
         }
         if (formData.password !== formData.confirmPassword) {
@@ -68,7 +65,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               setFormData({ email: "", password: "", confirmPassword: "" });
               setOtp("");
               setErrorMessage("");
-              onBackToLogin(); // Go back to login screen safely
+              onBackToLogin();
             }
           }
         );
@@ -88,33 +85,28 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           mb: 2,
           textTransform: "none",
           fontWeight: 600,
-          background: "transparent",
-          "&:hover": { color: "#0a2558", backgroundColor: "rgba(0,0,0,0.05)" }
+          p: 0,
+          "&:hover": { color: "#0a2558", backgroundColor: "transparent" }
         }}
       >
-        Back to Login
+        Back to Sign In
       </Button>
 
       <Typography
-        component="h1"
-        variant="h5"
+        variant="h6"
         sx={{
+          fontWeight: 700,
           color: "#0a2558",
-          fontWeight: 800,
           textAlign: "center",
-          mb: 1,
-          letterSpacing: "-0.5px"
+          mb: 0.5,
         }}
       >
         Reset Password
       </Typography>
-      <Typography
-        variant="body2"
-        sx={{ color: "#64748b", textAlign: "center", mb: 3, fontWeight: 500 }}
-      >
+      <Typography variant="body2" sx={{ color: "#64748b", textAlign: "center", mb: 3 }}>
         {step === 1 && "Enter your registered email to receive an OTP"}
         {step === 2 && "Enter the 6-digit OTP sent to your email"}
-        {step === 3 && "Securely enter your new preferred password"}
+        {step === 3 && "Enter your new password"}
       </Typography>
 
       <Box
@@ -127,37 +119,22 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
             required
             fullWidth
             id="email"
-            label="Email Address"
             name="email"
-            autoComplete="email"
+            label="Email Address"
             placeholder="Enter your email"
             value={formData.email || ""}
             onChange={handleChange}
             disabled={step > 1 || isPending}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ color: "#94a3b8" }} />
-                </InputAdornment>
-              ),
-            }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "8px",
-                "&.Mui-focused fieldset": {
-                  borderColor: "#0a2558",
-                  borderWidth: "2px"
-                },
+                borderRadius: "10px",
               },
-              "& .MuiInputLabel-root.Mui-focused": {
-                color: "#0a2558",
-              }
             }}
           />
         )}
 
         {step >= 2 && (
-          <Box sx={{ mt: 1, mb: 1, display: "flex", justifyContent: "center" }}>
+          <Box sx={{ my: 1, display: "flex", justifyContent: "center" }}>
             <MuiOtpInput
               value={otp}
               length={6}
@@ -167,12 +144,8 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
                 disabled: step > 2 || isPending,
                 sx: {
                   "& .MuiOutlinedInput-root": {
-                    height: "50px",
+                    height: "48px",
                     borderRadius: "8px",
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#0a2558",
-                      borderWidth: "2px"
-                    },
                   },
                 },
               }}
@@ -186,32 +159,17 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               required
               fullWidth
               id="password"
-              label="New Password"
               name="password"
               type="password"
-              autoComplete="new-password"
+              label="New Password"
               placeholder="Enter new password"
               value={formData.password || ""}
               onChange={handleChange}
               disabled={isPending}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon sx={{ color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
-              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#0a2558",
-                    borderWidth: "2px"
-                  },
+                  borderRadius: "10px",
                 },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: "#0a2558",
-                }
               }}
             />
 
@@ -219,34 +177,19 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
               required
               fullWidth
               id="confirmPassword"
-              label="Confirm Password"
               name="confirmPassword"
               type="password"
-              autoComplete="new-password"
+              label="Confirm Password"
               placeholder="Confirm new password"
               value={formData.confirmPassword || ""}
               onChange={handleChange}
               disabled={isPending}
               error={!!errorMessage}
               helperText={errorMessage}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon sx={{ color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
-              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#0a2558",
-                    borderWidth: "2px"
-                  },
+                  borderRadius: "10px",
                 },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: "#0a2558",
-                }
               }}
             />
           </>
@@ -258,32 +201,22 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
           variant="contained"
           disabled={isPending}
           sx={{
-            mt: 2,
-            mb: 2,
-            background: "linear-gradient(135deg, #FFC000 0%, #E6A800 100%)",
-            color: "#0a2558",
-            fontWeight: 800,
-            fontSize: "1rem",
-            padding: "12px",
-            borderRadius: "8px",
+            mt: 1,
+            py: 1.2,
+            backgroundColor: "#0a2558",
+            color: "#ffffff",
+            fontWeight: 700,
+            borderRadius: "10px",
             textTransform: "none",
-            boxShadow: "0 8px 16px rgba(255, 192, 0, 0.3)",
-            transition: "all 0.3s ease",
             "&:hover": {
-              background: "linear-gradient(135deg, #FFCE33 0%, #FFC000 100%)",
-              transform: "translateY(-2px)",
-              boxShadow: "0 12px 20px rgba(255, 192, 0, 0.4)",
+              backgroundColor: "#061638",
             },
-            "&:disabled": {
-              background: "#e2e8f0",
-              color: "#94a3b8"
-            }
           }}
         >
-          {isPending 
-            ? "Processing..." 
+          {isPending
+            ? "Processing..."
             : step === 1
-              ? "Get OTP"
+              ? "Send OTP"
               : step === 2
                 ? "Verify OTP"
                 : "Reset Password"}

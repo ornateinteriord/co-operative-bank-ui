@@ -2,21 +2,27 @@ import DataTable from 'react-data-table-component';
 import { Box } from '@mui/material';
 import { DASHBOARD_CUTSOM_STYLE } from '../../../utils/DataTableColumnsProvider';
 
-const DashboardTable = ({ data, columns, sx = {} }: { data: any, columns: any, sx?: any }) => {
-
-    return (
-        <Box sx={{ width: '100%', ...sx }}>
-            <DataTable
-                columns={columns}
-                data={data}
-                pagination
-                highlightOnHover
-                customStyles={DASHBOARD_CUTSOM_STYLE}
-                pointerOnHover
-                noDataComponent={<div>No data available</div>}
-            />
-        </Box>
-    );
+interface DashboardTableProps {
+  data: any;
+  columns: any;
+  sx?: any;
+  customStyles?: any;
 }
+
+const DashboardTable = ({ data, columns, sx = {}, customStyles }: DashboardTableProps) => {
+  return (
+    <Box sx={{ width: '100%', ...sx }}>
+      <DataTable
+        columns={columns}
+        data={data}
+        pagination
+        highlightOnHover
+        customStyles={customStyles || DASHBOARD_CUTSOM_STYLE}
+        pointerOnHover
+        noDataComponent={<Box sx={{ p: 3, textAlign: 'center', color: '#64748b' }}>No data available</Box>}
+      />
+    </Box>
+  );
+};
 
 export default DashboardTable;

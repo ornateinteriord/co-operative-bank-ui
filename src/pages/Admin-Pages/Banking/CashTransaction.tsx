@@ -136,11 +136,13 @@ const CashTransaction: React.FC = () => {
       onClick={() => setTablePrintDialogOpen(true)}
       sx={{
         textTransform: 'none',
-        backgroundColor: '#6366f1',
-        '&:hover': { backgroundColor: '#4f46e5' }
+        borderRadius: '10px',
+        fontWeight: 700,
+        backgroundColor: '#0a2558',
+        '&:hover': { backgroundColor: '#061638' }
       }}
     >
-      Print
+      Print Cash Register
     </Button>
   );
 
@@ -156,16 +158,19 @@ const CashTransaction: React.FC = () => {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2, sm: 3 },
+            p: { xs: 2.5, sm: 3 },
             textAlign: 'center',
-            background: '#667eea',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #0a2558 0%, #1e40af 100%)',
             color: 'white',
+            boxShadow: '0 8px 20px rgba(10, 37, 88, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
           }}
         >
-          <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
+          <Typography variant="body2" sx={{ mb: 1, color: 'rgba(255, 255, 255, 0.8)', fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.5px' }}>
             Opening Balance
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+          <Typography variant="h5" sx={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: { xs: '1.4rem', sm: '1.65rem' }, fontVariantNumeric: 'tabular-nums' }}>
             ₹ {cashTransactionsData?.summary?.openingBalance?.toFixed(2) || '0.00'}
           </Typography>
         </Paper>
@@ -173,13 +178,14 @@ const CashTransaction: React.FC = () => {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2, sm: 3 },
+            p: { xs: 2, sm: 2.5 },
             textAlign: 'center',
-            background: '#667eea',
+            borderRadius: '12px',
+            background: '#dc2626',
             color: 'white',
           }}
         >
-          <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
+          <Typography variant="body2" sx={{ mb: 0.5, opacity: 0.9, fontWeight: 500, fontSize: '0.8rem' }}>
             Debit Amount
           </Typography>
           <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
@@ -190,16 +196,17 @@ const CashTransaction: React.FC = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 3,
+            p: { xs: 2, sm: 2.5 },
             textAlign: 'center',
-            background: '#667eea',
+            borderRadius: '12px',
+            background: '#059669',
             color: 'white',
           }}
         >
-          <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
+          <Typography variant="body2" sx={{ mb: 0.5, opacity: 0.9, fontWeight: 500, fontSize: '0.8rem' }}>
             Credit Amount
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             ₹ {cashTransactionsData?.summary?.creditAmount?.toFixed(2) || '0.00'}
           </Typography>
         </Paper>
@@ -207,16 +214,17 @@ const CashTransaction: React.FC = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 3,
+            p: { xs: 2, sm: 2.5 },
             textAlign: 'center',
-            background: '#667eea',
+            borderRadius: '12px',
+            background: '#0a2558',
             color: 'white',
           }}
         >
-          <Typography variant="body2" sx={{ mb: 1, opacity: 0.9 }}>
+          <Typography variant="body2" sx={{ mb: 0.5, opacity: 0.9, fontWeight: 500, fontSize: '0.8rem' }}>
             Closing Balance
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             ₹ {cashTransactionsData?.summary?.closingBalance?.toFixed(2) || '0.00'}
           </Typography>
         </Paper>

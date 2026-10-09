@@ -1,7 +1,5 @@
 import DashboardCards from './DashboardCards';
 import InterestCard from './interest-card';
-// import WalletCard from '../../../components/Dashboard/WalletCard';
-// import { useNavigate } from 'react-router-dom';
 import { useGetDashboardCounts, useGetRecentData } from '../../../queries/admin';
 import { Box } from '@mui/material';
 
@@ -26,21 +24,20 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div style={{ backgroundColor: "#f8f9fa", minHeight: '100%' }}>
-      {/* Top margin to separate from the fixed navbar - using smaller margin since App.tsx already provides padding */}
-      <Box sx={{ mt: 2 }} />
-      
-      <div className="mb-4">
-        {/* WalletCard placeholder if needed later */}
-      </div>
-
+    <Box
+      sx={{
+        backgroundColor: '#f1f5f9',
+        minHeight: '100%',
+        py: { xs: 2, md: 3 },
+      }}
+    >
       <InterestCard />
 
       <DashboardCards 
         counts={displayCounts as any} 
         recentData={displayRecentData as any} 
       />
-    </div>
+    </Box>
   );
 };
 

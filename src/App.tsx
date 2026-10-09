@@ -196,6 +196,7 @@ const UserAgentWallet = lazy(() => import("./pages/User-Pages/Wallet/AgentWallet
 const UserLoans = lazy(() => import("./pages/User-Pages/Loans/MyLoans"));
 const PassbookPrintingPage = lazy(() => import("./pages/Admin-Pages/Passbook/PassbookPrintingPage"));
 const UserPassbookPage = lazy(() => import("./pages/User-Pages/Passbook/UserPassbookPage"));
+const BankingOperationsPage = lazy(() => import("./pages/Admin-Pages/Banking/BankingOperationsPage"));
 
 const LoansMemberPending = lazy(() => import("./pages/Loans/Loanspending/Pending"));
 const LoansMemberProcessed = lazy(() => import("./pages/Loans/Loansprocesssed/Processed"));
@@ -566,6 +567,10 @@ const RoutesProvider = ({
               {/* Passbook Printing */}
               <Route path="/admin_01/passbook" element={<PassbookPrintingPage />} />
               <Route path="/banking/passbook" element={<PassbookPrintingPage />} />
+
+              {/* Core Banking Operations & Daemon Schedulers */}
+              <Route path="/admin_01/banking/operations" element={<BankingOperationsPage />} />
+              <Route path="/admin/banking/operations" element={<BankingOperationsPage />} />
             </Route>
 
             {/* agent routes */}

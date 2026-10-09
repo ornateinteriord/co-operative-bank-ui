@@ -1,10 +1,11 @@
-import { Box, Card, CardContent, Button, SxProps, Theme } from '@mui/material';
+import { Box, Card, CardContent, Button, SxProps, Theme, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface DashboardCardProps {
   icon?: ReactNode;
   title: string;
   status?: string;
+  statusColor?: string;
   description?: string;
   showActionButton?: boolean;
   actionButtonLabel?: string;
@@ -18,6 +19,7 @@ const DashboardCard = ({
   icon,
   title,
   status,
+  statusColor = '#10b981',
   description,
   showActionButton = false,
   actionButtonLabel,
@@ -29,72 +31,60 @@ const DashboardCard = ({
   return (
     <Card
       sx={{
-        background: 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)',
-        borderRadius: 2,
-        position: 'relative',
-        overflow: 'hidden',
+        background: '#0a2558',
+        borderRadius: '14px',
         color: 'white',
-        minHeight: 150,
+        minHeight: 140,
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         ...sx,
       }}
     >
-      {/* Background Icon */}
-      {icon && (
-        <Box
-          sx={{
-            position: 'absolute',
-            right: 16,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            opacity: 0.1,
-            fontSize: '120px',
-            color: 'white',
-          }}
-        >
-          {icon}
-        </Box>
-      )}
-
-      <CardContent sx={{ position: 'relative', zIndex: 1, p: 3 }}>
+      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
         {/* Header Section */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
-          {/* Icon */}
-          {icon && (
-            <Box
-              sx={{
-                fontSize: '40px',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              {icon}
-            </Box>
-          )}
-
-          {/* Title and Status */}
-          <Box sx={{ flex: 1 }}>
-            <Box
-              sx={{
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'white',
-                mb: 0.5,
-              }}
-            >
-              {title}
-            </Box>
-            {status && (
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, flex: 1 }}>
+            {icon && (
               <Box
                 sx={{
-                  fontSize: '14px',
-                  color: '#62ff00ff',
-                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  '& svg': {
+                    fontSize: 24,
+                  }
                 }}
               >
-                {status}
+                {icon}
               </Box>
             )}
+
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  lineHeight: 1.2,
+                }}
+              >
+                {title}
+              </Typography>
+              {status && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontWeight: 500,
+                  }}
+                >
+                  {status}
+                </Typography>
+              )}
+            </Box>
           </Box>
 
           {/* Action Button */}
@@ -106,7 +96,11 @@ const DashboardCard = ({
               sx={{
                 color: 'white',
                 borderColor: 'rgba(255, 255, 255, 0.3)',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
                 textTransform: 'none',
+                px: 1.2,
+                py: 0.2,
                 '&:hover': {
                   borderColor: 'white',
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -118,14 +112,15 @@ const DashboardCard = ({
           )}
         </Box>
 
-        {/* Description */}
+        {/* Amount / Metric Value */}
         {description && (
           <Box
             sx={{
-              fontSize: '28px',
+              fontSize: { xs: '1.5rem', sm: '1.75rem' },
               fontWeight: 700,
-              color: 'white',
-              mb: showFooterContent ? 2 : 0,
+              color: '#ffffff',
+              mt: 1,
+              mb: showFooterContent ? 1.5 : 0,
             }}
           >
             {description}
@@ -134,7 +129,7 @@ const DashboardCard = ({
 
         {/* Footer Content */}
         {showFooterContent && footerContent && (
-          <Box sx={{ mt: 2 }}>{footerContent}</Box>
+          <Box sx={{ mt: 1.5 }}>{footerContent}</Box>
         )}
       </CardContent>
     </Card>

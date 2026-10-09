@@ -7,6 +7,7 @@ import { useGetPreMaturityAccounts } from '../../../../queries/admin';
 import { MaturityAccount } from '../../../../types';
 import TablePDF, { PrintColumn } from '../../../../components/Print-components/TablePDF';
 import AccountCloseDialog from '../../../../components/Banking/AccountCloseDialog';
+import DepositCertificateModal from '../../../../components/Banking/DepositCertificateModal';
 
 const RDPreMaturity: React.FC = () => {
     const [page, setPage] = useState(0);
@@ -14,6 +15,8 @@ const RDPreMaturity: React.FC = () => {
 
     const [printDialogOpen, setPrintDialogOpen] = useState(false);
     const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+    const [certModalOpen, setCertModalOpen] = useState(false);
+    const [selectedCertAccountId, setSelectedCertAccountId] = useState<string | null>(null);
     const [selectedAccount, setSelectedAccount] = useState<MaturityAccount | null>(null);
     const tablePrintRef = useRef<HTMLDivElement>(null);
 
@@ -99,21 +102,36 @@ const RDPreMaturity: React.FC = () => {
         {
             id: 'actions',
             label: 'Actions',
-            minWidth: 100,
+            minWidth: 160,
             renderCell: (row) => (
-                <Button
-                    variant="outlined"
-                    size="small"
-                    color="error"
-                    sx={{ textTransform: 'none' }}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenCloseDialog(row);
-                    }}
-                    disabled={row.status === 'Closed'}
-                >
-                    {row.status === 'Closed' ? 'Closed' : 'Close'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        sx={{ textTransform: 'none' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCertAccountId(row.account_id);
+                            setCertModalOpen(true);
+                        }}
+                    >
+                        Certificate
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        sx={{ textTransform: 'none' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenCloseDialog(row);
+                        }}
+                        disabled={row.status === 'Closed'}
+                    >
+                        {row.status === 'Closed' ? 'Closed' : 'Close'}
+                    </Button>
+                </Box>
             ),
         },
     ];
@@ -199,6 +217,12 @@ const RDPreMaturity: React.FC = () => {
                 account={selectedAccount}
                 isMatured={false}
                 onSuccess={() => refetch()}
+            />
+
+            <DepositCertificateModal
+                open={certModalOpen}
+                onClose={() => setCertModalOpen(false)}
+                accountId={selectedCertAccountId}
             />
         </Box>
     );

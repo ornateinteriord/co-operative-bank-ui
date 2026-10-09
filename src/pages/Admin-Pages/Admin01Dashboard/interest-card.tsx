@@ -5,10 +5,6 @@ import { useNavigate } from 'react-router-dom';
 
 const InterestCard: React.FC = () => {
     const navigate = useNavigate();
-    
-    const handleNavigate = () => {
-        navigate('/banking/interestrate');
-    };
 
     return (
         <Box
@@ -16,49 +12,58 @@ const InterestCard: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: '#f8f9fa',
-                borderRadius: 1,
-                px: 4,
-                py: 3,
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                px: { xs: 2.5, md: 3 },
+                py: 2,
                 mb: 3,
+                mx: { xs: 2, md: 3 },
                 border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
             }}
         >
-            {/* Left side - Text */}
             <Box>
                 <Typography
-                    variant="body1"
+                    variant="subtitle1"
                     sx={{
-                        color: '#64748b',
-                        fontSize: '0.875rem',
-                        letterSpacing: 0.5,
+                        fontWeight: 700,
+                        color: '#0a2558',
+                        fontSize: '1rem',
                     }}
                 >
-                    EXPLORE THE POWER OF OUR ADMIN TEMPLATE
+                    Interest Rates & Deposit Schemes
+                </Typography>
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: '#64748b',
+                        fontSize: '0.85rem',
+                    }}
+                >
+                    Manage interest rates for savings, fixed deposits, and loans
                 </Typography>
             </Box>
 
-            {/* Right side - Button */}
             <Button
                 variant="contained"
                 startIcon={<PercentIcon />}
-                onClick={handleNavigate}
+                onClick={() => navigate('/banking/interestrate')}
                 sx={{
-                    backgroundColor: '#dc2626',
+                    backgroundColor: '#0a2558',
                     color: 'white',
-                    fontWeight: 700,
-                    letterSpacing: 0.5,
-                    px: 3,
-                    py: 1,
-                    borderRadius: 1,
+                    fontWeight: 600,
+                    px: 2.5,
+                    py: 0.9,
+                    borderRadius: '8px',
                     textTransform: 'none',
                     fontSize: '0.875rem',
+                    whiteSpace: 'nowrap',
                     '&:hover': {
-                        backgroundColor: '#b91c1c',
+                        backgroundColor: '#061638',
                     }
                 }}
             >
-                INTEREST RATE
+                Interest Rates
             </Button>
         </Box>
     );

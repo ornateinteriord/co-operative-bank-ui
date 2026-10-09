@@ -11,10 +11,16 @@ import {
   FormControlLabel,
   Link as MuiLink,
   InputAdornment,
-  IconButton
+  IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff, PersonOutline, LockOutlined } from "@mui/icons-material";
-import BMSLogo from "../../assets/bms_logo.png"; // Import the logo
+import {
+  Visibility,
+  VisibilityOff,
+  LockOutlined,
+  PersonOutline,
+  AccountBalance,
+} from "@mui/icons-material";
+// import BMSLogo from "../../assets/bms_logo.png";
 import { LoadingComponent } from "../../App";
 import { useLoginMutation } from "../../api/Auth";
 import ForgotPasswordForm from "./components/ForgotPasswordForm";
@@ -34,19 +40,16 @@ const Login = () => {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        // Validate the structure of the saved data
-        if (parsedUser && typeof parsedUser === 'object' && parsedUser.username && parsedUser.password) {
+        if (parsedUser && typeof parsedUser === "object" && parsedUser.username && parsedUser.password) {
           setFormData({
             username: parsedUser.username,
             password: parsedUser.password,
           });
           setRememberMe(true);
         } else {
-          // If data is invalid formatted, remove it to prevent future errors
           localStorage.removeItem("rememberedUser");
         }
       } catch (error) {
-        // If saved data is not valid JSON (e.g. was stored as plain text), remove it
         localStorage.removeItem("rememberedUser");
         console.error("Failed to parse rememberedUser data:", error);
       }
@@ -67,7 +70,6 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Handle Remember Me logic
     if (rememberMe) {
       localStorage.setItem("rememberedUser", JSON.stringify(formData));
     } else {
@@ -89,237 +91,200 @@ const Login = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        /* Stunning Premium Banking Gradient */
-        background: "linear-gradient(135deg, #0a2558 0%, #153b93 100%)",
-        position: "relative",
-        overflow: "hidden",
+        backgroundColor: "#0a2558",
+        p: 2,
       }}
     >
-      {/* Abstract Background Design Elements for modern feel */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "-10%",
-          left: "-10%",
-          width: "200px",
-          height: "200px",
-          background: "radial-gradient(circle, rgba(255,192,0,0.2) 0%, rgba(255,192,0,0) 70%)",
-          borderRadius: "50%",
-          filter: "blur(40px)",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-5%",
-          right: "-5%",
-          width: "400px",
-          height: "400px",
-          background: "radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0) 70%)",
-          borderRadius: "50%",
-          filter: "blur(60px)",
-        }}
-      />
-
-      <Container component="main" maxWidth="xs" sx={{ position: "relative", zIndex: 1 }}>
+      <Container maxWidth="xs">
         <Paper
-          elevation={24}
+          elevation={4}
           sx={{
+            p: { xs: 3, sm: 4 },
+            borderRadius: "16px",
+            backgroundColor: "#ffffff",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            width: "100%",
-            p: { xs: 2, md: 3 },
-            borderRadius: "16px",
-            background: "rgba(255, 255, 255, 0.98)", // Glassy/clean white feel
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-            border: "1px solid rgba(255,255,255,0.7)",
           }}
         >
-          <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
-            <img
-              src={BMSLogo}
-              alt="BMS Finance & Foundation"
-              style={{ maxWidth: "220px", height: "auto", objectFit: "contain" }}
-            />
+          {/* Logo / Bank Title */}
+          <Box sx={{ mb: 2, textAlign: "center" }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: "12px",
+                backgroundColor: "#0a2558",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+                mx: "auto",
+                mb: 1.5,
+              }}
+            >
+              <AccountBalance sx={{ fontSize: 28 }} />
+            </Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                color: "#0a2558",
+                lineHeight: 1.2,
+              }}
+            >
+              Udupi Co-operative Bank
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
+              Sign in to your account
+            </Typography>
           </Box>
 
           {isResetMode ? (
             <ForgotPasswordForm onBackToLogin={() => setIsResetMode(false)} />
           ) : (
-            <>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}
-          >
-            <TextField
-              required
-              fullWidth
-              id="username"
-              name="username"
-              autoComplete="username"
-              autoFocus
-              label="User ID"
-              placeholder="Enter your registered ID"
-              value={formData.username}
-              onChange={handleChange}
-              variant="outlined"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonOutline sx={{ color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#0a2558",
-                    borderWidth: "2px"
-                  },
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: "#0a2558",
-                }
-              }}
-            />
-
-            <TextField
-              required
-              fullWidth
-              name="password"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              autoComplete="current-password"
-              label="Password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              variant="outlined"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockOutlined sx={{ color: "#94a3b8" }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#0a2558",
-                    borderWidth: "2px"
-                  },
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: "#0a2558",
-                }
-              }}
-            />
-
             <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mt: -1
-              }}
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}
             >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    sx={{
-                      color: "#94a3b8",
-                      "&.Mui-checked": {
-                        color: "#0a2558",
-                      },
-                    }}
-                  />
-                }
-                label={
-                  <Typography variant="body2" sx={{ color: "#475569", fontWeight: 500 }}>
-                    Remember me
-                  </Typography>
-                }
+              <TextField
+                required
+                fullWidth
+                id="username"
+                name="username"
+                label="User ID"
+                placeholder="Enter User ID"
+                value={formData.username}
+                onChange={handleChange}
+                autoFocus
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonOutline sx={{ color: "#64748b" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                  },
+                }}
               />
-              <MuiLink
-                component="button"
-                type="button"
-                onClick={() => setIsResetMode(true)}
-                underline="hover"
-                sx={{ color: "#0a2558", fontSize: "0.875rem", fontWeight: 600 }}
-              >
-                Forgot password?
-              </MuiLink>
-            </Box>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={isPending}
-              sx={{
-                mt: 1,
-                mb: 2,
-                background: "linear-gradient(135deg, #FFC000 0%, #E6A800 100%)",
-                color: "#0a2558",
-                fontWeight: 800,
-                fontSize: "1rem",
-                padding: "12px",
-                borderRadius: "8px",
-                textTransform: "none",
-                boxShadow: "0 8px 16px rgba(255, 192, 0, 0.3)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #FFCE33 0%, #FFC000 100%)",
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 12px 20px rgba(255, 192, 0, 0.4)",
-                },
-                "&:disabled": {
-                  background: "#e2e8f0",
-                  color: "#94a3b8"
-                }
-              }}
-            >
-              Sign In to Account
-            </Button>
+              <TextField
+                required
+                fullWidth
+                name="password"
+                type={showPassword ? "text" : "password"}
+                id="password"
+                label="Password"
+                placeholder="Enter password"
+                value={formData.password}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlined sx={{ color: "#64748b" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                  },
+                }}
+              />
 
-            <Typography
-              variant="body2"
-              sx={{ textAlign: "center", mt: 1, color: "#64748b", fontWeight: 500 }}
-            >
-              Ready to start your journey?{" "}
-              <Link
-                to="/register"
-                style={{
-                  color: "#10b981", // Emerald green for fresh action
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  transition: "color 0.2s ease"
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mt: -0.5,
                 }}
               >
-                Open an Account
-              </Link>
-            </Typography>
-          </Box>
-            </>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      size="small"
+                      sx={{ color: "#94a3b8", "&.Mui-checked": { color: "#0a2558" } }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ color: "#475569", fontSize: "0.85rem" }}>
+                      Remember me
+                    </Typography>
+                  }
+                />
+                <MuiLink
+                  component="button"
+                  type="button"
+                  onClick={() => setIsResetMode(true)}
+                  underline="hover"
+                  sx={{
+                    color: "#0a2558",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Forgot password?
+                </MuiLink>
+              </Box>
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={isPending}
+                sx={{
+                  mt: 1,
+                  py: 1.2,
+                  backgroundColor: "#0a2558",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#061638",
+                  },
+                }}
+              >
+                {isPending ? "Signing in..." : "Sign In"}
+              </Button>
+
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", mt: 1, color: "#64748b" }}
+              >
+                Don't have an account?{" "}
+                <Link
+                  to="/register"
+                  style={{
+                    color: "#0a2558",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                  }}
+                >
+                  Register
+                </Link>
+              </Typography>
+            </Box>
           )}
         </Paper>
       </Container>

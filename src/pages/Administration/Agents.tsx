@@ -720,7 +720,7 @@ const Agents: React.FC = () => {
       >
         <DialogTitle
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #0a2558 0%, #1e40af 100%)',
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -770,7 +770,7 @@ const Agents: React.FC = () => {
               borderRadius: '12px',
               textTransform: 'none',
               px: 3,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #0a2558 0%, #1e40af 100%)',
             }}
           >
             Print

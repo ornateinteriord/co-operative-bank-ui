@@ -1,6 +1,5 @@
 import {
   ChevronDown,
-  Lock,
   LogOutIcon,
   Menu as MenuIcon,
   Settings,
@@ -8,6 +7,7 @@ import {
   BookOpen,
   ArrowLeft,
 } from "lucide-react";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import "./navbar.scss";
 import {
   AppBar,
@@ -24,10 +24,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { IconButton } from "@mui/material";
 import useAuth from "../../hooks/use-auth";
 import TokenService from "../../api/token/tokenService";
-import { deepOrange } from "@mui/material/colors";
 import { useState } from "react";
 import { useGetMemberDetails } from "../../api/Memeber";
-
 
 interface NavbarProps {
   shouldHide?: boolean;
@@ -45,11 +43,9 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
   const isAdmin = userRole === "ADMIN" || userRole === "ADMIN_01" || userRole === "AGENT";
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  // Always call hooks before any early return (Rules of Hooks)
   const userId = TokenService.getMemberId();
   const { data: memberDetails } = useGetMemberDetails(userId);
 
-  // If we should hide the navbar (on public/auth pages), return null
   if (shouldHide) return null;
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -89,7 +85,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
     if (path.includes('/overdraft')) return 'Overdraft';
     if (path.includes('/account-opening')) return 'Open Account';
     if (path.includes('/chat')) return 'Support';
-    return 'BMS';
+    return 'Bank';
   };
 
   return (
@@ -98,9 +94,9 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
         position="fixed"
         elevation={0}
         sx={{
-          background: "#081b42", // Darkened version of #0D2B68
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          background: "#0a2558",
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           zIndex: (theme) => theme.zIndex.drawer + 1
         }}
       >
@@ -111,7 +107,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Left section: Native mobile header vs desktop header */}
+          {/* Left section */}
           {isMobile && isMemberOrAgent ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {!isRootDashboard ? (
@@ -127,20 +123,16 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                     sx={{
                       color: "white",
                       p: 0.75,
-                      bgcolor: "rgba(255,255,255,0.12)",
-                      borderRadius: "12px",
-                      "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
                     }}
                   >
-                    <ArrowLeft size={18} />
+                    <ArrowLeft size={20} />
                   </IconButton>
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: 800,
-                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      fontSize: '1rem',
                       color: 'white',
-                      letterSpacing: '0.2px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -151,22 +143,21 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                   </Typography>
                 </>
               ) : (
-                <>
+                <Box
+                  onClick={() => navigate(isAgent ? "/agent/dashboard" : "/user/dashboard")}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
+                >
+                  <AccountBalanceIcon sx={{ color: 'white', fontSize: 22 }} />
                   <Typography
-                    variant="h5"
-                    onClick={() => navigate(isAgent ? "/agent/dashboard" : "/user/dashboard")}
                     sx={{
-                      fontWeight: 950,
-                      fontSize: '1.4rem',
-                      cursor: "pointer",
-                      letterSpacing: '1.5px',
+                      fontWeight: 800,
+                      fontSize: '1.1rem',
                       color: 'white',
-                      textShadow: '0 2px 4px rgba(0,0,0,0.2)'
                     }}
                   >
-                    BMS
+                    Udupi Co-operative Bank
                   </Typography>
-                </>
+                </Box>
               )}
             </Box>
           ) : (
@@ -176,31 +167,36 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                   onClick={onToggleSidebar}
                   sx={{
                     color: "white",
-                    mr: 1,
+                    mr: 0.5,
                     display: { xs: (userRole === "ADMIN" || userRole === "ADMIN_01") ? 'flex' : 'none', md: 'flex' }
                   }}
                 >
-                  <MenuIcon size={24} />
+                  <MenuIcon size={22} />
                 </IconButton>
               )}
-              <Typography
-                variant="h4"
+
+              {/* Simple Bank Title */}
+              <Box
                 onClick={() => navigate("/")}
-                sx={{
-                  fontWeight: 950,
-                  fontSize: { xs: '1.4rem', md: '1.85rem' },
-                  cursor: "pointer",
-                  letterSpacing: '1.5px',
-                  color: 'white',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 1.2, cursor: 'pointer' }}
               >
-                BMS
-              </Typography>
+                <AccountBalanceIcon sx={{ color: 'white', fontSize: 26 }} />
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: { xs: '1.1rem', md: '1.3rem' },
+                    color: '#ffffff',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  Udupi Co-operative Bank
+                </Typography>
+              </Box>
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+          {/* Right section: Profile Menu */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {isLoggedIn && (
               <Box
                 onClick={handleMenuOpen}
@@ -209,37 +205,38 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
-                  padding: '4px 8px',
-                  borderRadius: '12px',
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: '8px',
                   transition: 'background 0.2s',
                   '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.1)'
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
                   }
                 }}
               >
                 <Avatar
                   sx={{
-                    width: { xs: 32, md: 38 },
-                    height: { xs: 32, md: 38 },
-                    bgcolor: '#FFC000',
+                    width: 34,
+                    height: 34,
+                    bgcolor: '#ffffff',
                     color: '#0a2558',
-                    fontWeight: 900,
-                    fontSize: { xs: '0.85rem', md: '1rem' },
-                    border: '2px solid rgba(255,255,255,0.4)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
                   }}
                 >
                   {memberDetails?.Name?.charAt(0).toUpperCase() || (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
                 </Avatar>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'left' }}>
-                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 800, lineHeight: 1.1 }}>
+                  <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1.2, fontSize: '0.85rem' }}>
                     {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600, fontSize: '0.65rem' }}>
-                    {memberDetails?.Member_id || ""}
-                  </Typography>
+                  {memberDetails?.Member_id && (
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem' }}>
+                      ID: {memberDetails.Member_id}
+                    </Typography>
+                  )}
                 </Box>
-                <ChevronDown size={18} color="white" style={{ opacity: 0.8 }} />
+                <ChevronDown size={16} color="white" style={{ opacity: 0.8 }} />
               </Box>
             )}
           </Box>
@@ -254,53 +251,57 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
             className: Boolean(anchorEl) ? "custom-menu open" : "custom-menu",
           }}
         >
-          <div
-            style={{
+          <Box
+            sx={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              padding: "10px 0",
+              py: 2,
+              px: 2,
             }}
           >
             <Avatar
               alt="User"
               sx={{
-                width: 64,
-                height: 64,
-                marginBottom: "8px",
-                background: deepOrange[500],
-                border: '2px solid #0a2558'
+                width: 48,
+                height: 48,
+                mb: 1,
+                bgcolor: '#0a2558',
+                color: '#ffffff',
+                fontWeight: 700,
               }}
             >
               {memberDetails?.Name
                 ? memberDetails.Name.charAt(0).toUpperCase()
                 : (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
             </Avatar>
-            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0a2558' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0a2558' }}>
               {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
-              ID: {memberDetails?.Member_id || ""}
-            </Typography>
-          </div>
+            {memberDetails?.Member_id && (
+              <Typography variant="caption" sx={{ color: '#64748b' }}>
+                ID: {memberDetails.Member_id}
+              </Typography>
+            )}
+          </Box>
 
-          <Divider />
+          <Divider sx={{ my: 0.5 }} />
 
           <MenuItem onClick={() => { handleMenuClose(); if (userRole === "AGENT") { navigate("/agent/profile"); } else if (userRole === "ADMIN" || userRole === "ADMIN_01") { navigate("/admin/dashboard"); } else { navigate("/user/account/profile"); } }}>
-            <User size={18} style={{ marginRight: "8px" }} />
+            <User size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
             My Profile
           </MenuItem>
 
           {userRole === "USER" && (
             <MenuItem onClick={() => { handleMenuClose(); navigate("/user/passbook"); }}>
-              <BookOpen size={18} style={{ marginRight: "8px", color: "#0a2558" }} />
-              My Passbook
+              <BookOpen size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+              Passbook
             </MenuItem>
           )}
 
           {(userRole === "ADMIN" || userRole === "ADMIN_01") && (
             <MenuItem onClick={() => { handleMenuClose(); navigate("/admin_01/passbook"); }}>
-              <BookOpen size={18} style={{ marginRight: "8px", color: "#0a2558" }} />
+              <BookOpen size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
               Passbook Printing
             </MenuItem>
           )}
@@ -311,27 +312,21 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
               setAnchorEl(null);
             }}
           >
-            <Settings size={18} style={{ marginRight: "8px" }} />
-            Account Settings
+            <Settings size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+            Change Password
           </MenuItem>
 
-          <Divider />
+          <Divider sx={{ my: 0.5 }} />
 
-          <div className="admin-panel-menuitems">
-            <MenuItem onClick={handleMenuClose} sx={{ display: "flex" }}>
-              <Lock size={17} style={{ marginRight: "4px", color: "#007bff" }} />
-              Lock
-            </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ display: "flex" }}>
-              <LogOutIcon
-                size={18}
-                style={{ marginRight: "4px", color: "red" }}
-              />
-              Logout
-            </MenuItem>
-          </div>
+          <MenuItem onClick={handleLogout} sx={{ color: "#dc2626", fontWeight: 600 }}>
+            <LogOutIcon
+              size={16}
+              style={{ marginRight: "10px", color: "#dc2626" }}
+            />
+            Logout
+          </MenuItem>
         </Menu>
-      </AppBar >
+      </AppBar>
     </>
   );
 };
