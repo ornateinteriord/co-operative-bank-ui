@@ -137,6 +137,7 @@ const MobileBottomNav: React.FC = () => {
             left: 0,
             right: 0,
             zIndex: 1100,
+            borderRadius: '16px 16px 0 0 !important',
             bgcolor: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             borderTop: '1px solid rgba(0, 0, 0, 0.08)',

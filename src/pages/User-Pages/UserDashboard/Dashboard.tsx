@@ -242,13 +242,23 @@ const UserDashboard = () => {
 
         {/* Name + ID + Wallet Info Column */}
         <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.5px', lineHeight: 1.2, mb: 0.5, fontSize: { xs: '1.15rem', md: '1.5rem' } }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 900,
+              letterSpacing: '-0.5px',
+              lineHeight: 1.2,
+              mb: 0.5,
+              fontSize: { xs: '1.15rem', md: '1.5rem' },
+              color: '#ffffff !important',
+            }}
+          >
             {memberDetails?.Name || (isMemberLoading ? '...' : '')}
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, opacity: 0.9, mb: 1.25 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.25 }}>
             <VerifiedUserIcon sx={{ fontSize: 14, color: '#10b981' }} />
-            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.5px' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.5px', color: 'rgba(255, 255, 255, 0.9) !important' }}>
               ID: {memberDetails?.Member_id || memberId || ''}
             </Typography>
           </Box>
@@ -262,19 +272,19 @@ const UserDashboard = () => {
                 width: 'fit-content',
                 alignItems: 'center',
                 gap: 0.6,
-                bgcolor: 'rgba(255,255,255,0.1)',
+                bgcolor: 'rgba(255,255,255,0.15)',
                 px: 1.5,
                 py: 0.5,
                 borderRadius: '10px',
                 cursor: 'pointer',
-                border: '1px solid rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.25)',
                 backdropFilter: 'blur(10px)',
                 transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.2)', transform: 'translateY(-1px)' },
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)', transform: 'translateY(-1px)' },
               }}
             >
               <AccountBalanceWalletIcon sx={{ fontSize: 16, color: '#FFC000' }} />
-              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', whiteSpace: 'nowrap', color: '#ffffff !important' }}>
                 ₹{Number(walletOverview?.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </Typography>
             </Box>
@@ -295,7 +305,7 @@ const UserDashboard = () => {
         <Button
           variant="contained"
           onClick={() => navigate('/user/passbook')}
-          startIcon={<MenuBookIcon sx={{ fontSize: { xs: '1.05rem !important', sm: '1.15rem !important' } }} />}
+          startIcon={<MenuBookIcon sx={{ fontSize: { xs: '1.05rem !important', sm: '1.15rem !important' }, color: '#0a2558' }} />}
           sx={{
             gridColumn: {
               xs: (isUserActive && isPackageActive) ? 'span 2' : 'span 1',
@@ -304,15 +314,21 @@ const UserDashboard = () => {
             borderRadius: '14px',
             textTransform: 'none',
             fontWeight: 900,
-            bgcolor: 'white',
-            color: '#0a2558',
+            background: '#ffffff !important',
+            backgroundColor: '#ffffff !important',
+            backgroundImage: 'none !important',
+            color: '#0a2558 !important',
             fontSize: { xs: '12.5px', sm: '13px' },
             whiteSpace: 'nowrap',
             py: { xs: 1.15, sm: 1.2 },
             px: { xs: 1.5, sm: 2 },
             minWidth: 0,
-            '&:hover': { bgcolor: '#f1f5f9' },
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            '&:hover': {
+              background: '#f1f5f9 !important',
+              backgroundColor: '#f1f5f9 !important',
+              backgroundImage: 'none !important',
+            },
           }}
         >
           Passbook
@@ -323,20 +339,26 @@ const UserDashboard = () => {
           <Button
             variant="contained"
             onClick={() => navigate('/user/addon-packages?view=fd')}
-            startIcon={<NoteAddIcon sx={{ fontSize: { xs: '1rem !important', sm: '1.1rem !important' } }} />}
+            startIcon={<NoteAddIcon sx={{ fontSize: { xs: '1rem !important', sm: '1.1rem !important' }, color: '#0a2558' }} />}
             sx={{
               borderRadius: '14px',
               textTransform: 'none',
               fontWeight: 900,
-              bgcolor: 'white',
-              color: '#0a2558',
+              background: '#ffffff !important',
+              backgroundColor: '#ffffff !important',
+              backgroundImage: 'none !important',
+              color: '#0a2558 !important',
               fontSize: { xs: '12.5px', sm: '13px' },
               whiteSpace: 'nowrap',
               py: { xs: 1.15, sm: 1.2 },
               px: { xs: 1.5, sm: 2 },
               minWidth: 0,
-              '&:hover': { bgcolor: '#f1f5f9' },
-              boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              '&:hover': {
+                background: '#f1f5f9 !important',
+                backgroundColor: '#f1f5f9 !important',
+                backgroundImage: 'none !important',
+              },
             }}
           >
             FD Bond
@@ -359,8 +381,10 @@ const UserDashboard = () => {
               borderRadius: '14px',
               textTransform: 'none',
               fontWeight: 900,
-              bgcolor: '#3b82f6',
-              color: 'white',
+              background: '#2563eb !important',
+              backgroundColor: '#2563eb !important',
+              backgroundImage: 'none !important',
+              color: '#ffffff !important',
               fontSize: { xs: '12.5px', sm: '13px' },
               whiteSpace: 'nowrap',
               py: { xs: 1.15, sm: 1.2 },
@@ -368,7 +392,11 @@ const UserDashboard = () => {
               minWidth: 0,
               border: '2px solid rgba(255,255,255,0.2)',
               boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-              '&:hover': { bgcolor: '#2563eb' }
+              '&:hover': {
+                background: '#1d4ed8 !important',
+                backgroundColor: '#1d4ed8 !important',
+                backgroundImage: 'none !important',
+              }
             }}
           >
             {(isPackageActive && showQuickAccess) ? 'Back' : 'Overdraft'}
@@ -490,7 +518,7 @@ const UserDashboard = () => {
                 </Box>
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: { xs: '0.95rem', sm: '1rem' }, color: '#ffffff !important' }}>
                       Active Loans
                     </Typography>
                     <Chip
@@ -499,7 +527,7 @@ const UserDashboard = () => {
                       sx={{ bgcolor: '#10b981', color: 'white', fontWeight: 800, fontSize: '0.65rem' }}
                     />
                   </Box>
-                  <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600, display: 'block', fontSize: { xs: '0.72rem', sm: '0.78rem' } }}>
+                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.9) !important', fontWeight: 600, display: 'block', fontSize: { xs: '0.72rem', sm: '0.78rem' } }}>
                     Balance: ₹{totalOutstandingLoan.toLocaleString('en-IN')} | Monthly EMI: ₹{monthlyEmi.toLocaleString('en-IN')}
                   </Typography>
                 </Box>
@@ -509,8 +537,10 @@ const UserDashboard = () => {
                 variant="contained"
                 onClick={() => navigate('/user/loans')}
                 sx={{
-                  bgcolor: 'white',
-                  color: '#0a2558',
+                  background: '#ffffff !important',
+                  backgroundColor: '#ffffff !important',
+                  backgroundImage: 'none !important',
+                  color: '#0a2558 !important',
                   fontWeight: 900,
                   borderRadius: '12px',
                   textTransform: 'none',
@@ -518,7 +548,12 @@ const UserDashboard = () => {
                   py: 1,
                   width: { xs: '100%', sm: 'auto' },
                   whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: '#f8fafc' },
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  '&:hover': {
+                    background: '#f8fafc !important',
+                    backgroundColor: '#f8fafc !important',
+                    backgroundImage: 'none !important',
+                  },
                 }}
               >
                 View Loans

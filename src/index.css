@@ -93,6 +93,15 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
 }
 
+/* Ensure top app bar is always flat with 0 border radius across all viewports */
+.MuiAppBar-root {
+  border-radius: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
 @media (min-width: 769px) {
   .sidebar-overlay {
     display: none !important;

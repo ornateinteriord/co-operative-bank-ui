@@ -94,6 +94,11 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
         position="fixed"
         elevation={0}
         sx={{
+          borderRadius: '0 !important',
+          borderTopLeftRadius: '0 !important',
+          borderTopRightRadius: '0 !important',
+          borderBottomLeftRadius: '0 !important',
+          borderBottomRightRadius: '0 !important',
           background: "#0a2558",
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
