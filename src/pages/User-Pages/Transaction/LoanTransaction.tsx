@@ -10,6 +10,8 @@ import {
   Box,
   Typography,
   Button,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -21,9 +23,12 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useGetTransactionDetails } from "../../../api/Memeber";
+import TransactionCardsView from "../../../components/common/TransactionCardsView";
 
 const LoanTransaction = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const {
     data: transactionsResponse,
     isLoading,
@@ -159,48 +164,59 @@ const LoanTransaction = () => {
               Loan Transactions ({filteredData.length})
             </AccordionSummary>
             <AccordionDetails sx={{ px: { xs: 0.5, sm: 1.5 }, py: 2 }}>
-              <DataTable
-                columns={getTransactionColumns()}
-                data={filteredData}
-                pagination
-                customStyles={DASHBOARD_CUTSOM_STYLE}
-                paginationPerPage={25}
-                paginationRowsPerPageOptions={[25, 50, 100]}
-                highlightOnHover
-                responsive
-                progressPending={false}
-                noDataComponent={noDataComponent}
-                subHeader
-                subHeaderComponent={
-                  <Box sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'space-between',
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    width: '100%',
-                    gap: 1.5,
-                    p: 1,
-                  }}>
-                    <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.78rem', sm: '0.875rem' } }}>
-                      Showing {filteredData.length} loan transactions (excluding Approved status)
-                    </Typography>
-                    <TextField
-                      placeholder="Search loan transactions..."
-                      variant="outlined"
-                      size="small"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      sx={{
-                        width: { xs: '100%', sm: 260 },
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '10px',
-                          fontSize: '0.85rem',
-                        },
-                      }}
-                    />
-                  </Box>
-                }
-              />
+              {isMobile ? (
+                <Box sx={{ pt: 1 }}>
+                  <TransactionCardsView
+                    transactions={filteredData}
+                    title="Loan Transactions"
+                    pageSize={15}
+                    emptyMessage="No loan transactions found"
+                  />
+                </Box>
+              ) : (
+                <DataTable
+                  columns={getTransactionColumns()}
+                  data={filteredData}
+                  pagination
+                  customStyles={DASHBOARD_CUTSOM_STYLE}
+                  paginationPerPage={25}
+                  paginationRowsPerPageOptions={[25, 50, 100]}
+                  highlightOnHover
+                  responsive
+                  progressPending={false}
+                  noDataComponent={noDataComponent}
+                  subHeader
+                  subHeaderComponent={
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: { xs: 'stretch', sm: 'center' },
+                      width: '100%',
+                      gap: 1.5,
+                      p: 1,
+                    }}>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.78rem', sm: '0.875rem' } }}>
+                        Showing {filteredData.length} loan transactions (excluding Approved status)
+                      </Typography>
+                      <TextField
+                        placeholder="Search loan transactions..."
+                        variant="outlined"
+                        size="small"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{
+                          width: { xs: '100%', sm: 260 },
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '10px',
+                            fontSize: '0.85rem',
+                          },
+                        }}
+                      />
+                    </Box>
+                  }
+                />
+              )}
             </AccordionDetails>
           </Accordion>
         </CardContent>

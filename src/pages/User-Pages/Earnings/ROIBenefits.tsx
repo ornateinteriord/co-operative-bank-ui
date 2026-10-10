@@ -1,12 +1,15 @@
 import DataTable from 'react-data-table-component';
-import { Card, CardContent, Accordion, AccordionSummary, AccordionDetails, TextField } from '@mui/material';
+import { Card, CardContent, Accordion, AccordionSummary, AccordionDetails, TextField, Box, useTheme, useMediaQuery } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { DASHBOARD_CUTSOM_STYLE, getLevelBenifitsColumns } from '../../../utils/DataTableColumnsProvider';
 import { useEffect } from 'react';
 import { useGetROIBenefits, useTriggerUserROI } from '../../../api/Memeber';
 import TokenService from '../../../api/token/tokenService';
+import TransactionCardsView from '../../../components/common/TransactionCardsView';
 
 const ROIBenefits = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const memberId = TokenService.getMemberId();
   const triggerROI = useTriggerUserROI();
 
@@ -69,41 +72,54 @@ const ROIBenefits = () => {
   }
 
   return (
-    <Card sx={{ margin: '2rem', mt: 10 }}>
-      <CardContent>
-        <Accordion defaultExpanded>
+    <Card sx={{ margin: { xs: '0.75rem', sm: '2rem' }, mt: { xs: 4, sm: 10 }, borderRadius: '16px' }}>
+      <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+        <Accordion defaultExpanded sx={{ boxShadow: 'none' }}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{
               backgroundColor: '#0a2558',
               color: '#fff',
+              borderRadius: '12px',
               '& .MuiSvgIcon-root': { color: '#fff' }
             }}
           >
             List of ROI Benefits ({processedData.length})
           </AccordionSummary>
-          <AccordionDetails>
-            <DataTable
-              columns={getLevelBenifitsColumns()}
-              data={processedData}
-              pagination
-              customStyles={DASHBOARD_CUTSOM_STYLE}
-              paginationPerPage={25}
-              paginationRowsPerPageOptions={[25, 50, 100]}
-              noDataComponent={noDataComponent}
-              highlightOnHover
-              progressPending={isLoading}
-              subHeader
-              subHeaderComponent={
-                <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', padding: '0.5rem' }}>
-                  <TextField
-                    placeholder="Search"
-                    variant="outlined"
-                    size="small"
-                  />
-                </div>
-              }
-            />
+          <AccordionDetails sx={{ p: { xs: 1, sm: 2 } }}>
+            {isMobile ? (
+              <Box sx={{ pt: 1 }}>
+                <TransactionCardsView
+                  transactions={processedData}
+                  isLoading={isLoading}
+                  title="ROI Benefits"
+                  pageSize={15}
+                  emptyMessage="No ROI benefits data available"
+                />
+              </Box>
+            ) : (
+              <DataTable
+                columns={getLevelBenifitsColumns()}
+                data={processedData}
+                pagination
+                customStyles={DASHBOARD_CUTSOM_STYLE}
+                paginationPerPage={25}
+                paginationRowsPerPageOptions={[25, 50, 100]}
+                noDataComponent={noDataComponent}
+                highlightOnHover
+                progressPending={isLoading}
+                subHeader
+                subHeaderComponent={
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', padding: '0.5rem' }}>
+                    <TextField
+                      placeholder="Search"
+                      variant="outlined"
+                      size="small"
+                    />
+                  </div>
+                }
+              />
+            )}
           </AccordionDetails>
         </Accordion>
       </CardContent>

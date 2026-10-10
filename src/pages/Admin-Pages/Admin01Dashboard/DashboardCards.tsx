@@ -1,4 +1,4 @@
-import { Box, Grid, Dialog, DialogTitle, DialogContent, IconButton, Typography } from '@mui/material';
+import { Box, Grid, Dialog, DialogTitle, DialogContent, IconButton, Typography, useTheme, useMediaQuery } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardCard from './DashboardCard';
@@ -19,6 +19,8 @@ interface DashboardCardsProps {
 
 const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [accountTypesDialogOpen, setAccountTypesDialogOpen] = useState(false);
 
   // Format recent members data for table
@@ -184,106 +186,153 @@ const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
             onActionClick={() => navigate('/admin_01/members')}
             showFooterContent={true}
             footerContent={
-              <Box
-                sx={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '10px',
-                  mt: 1,
-                  overflowX: 'auto',
-                  border: '1px solid #e2e8f0',
-                }}
-              >
-                <DashboardTable
-                  data={membersData}
-                  columns={membersColumns}
-                  customStyles={{
-                    headRow: {
-                      style: {
+              isMobile ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
+                  {membersData.slice(0, 5).map((m: any, idx: number) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: '12px',
+                        bgcolor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.8,
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>
+                          {m.name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            px: 1,
+                            py: 0.3,
+                            borderRadius: '6px',
+                            backgroundColor: m.status?.toLowerCase() === 'active' ? '#ecfdf5' : '#fef2f2',
+                            color: m.status?.toLowerCase() === 'active' ? '#059669' : '#dc2626',
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                          }}
+                        >
+                          {m.status?.toUpperCase() || 'ACTIVE'}
+                        </Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#64748b' }}>
+                        <span>ID: <strong style={{ color: '#0a2558' }}>{m.memberNum}</strong></span>
+                        <span>{m.dateOfJoining}</span>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#64748b' }}>
+                        <span>📞 {m.mobileNo}</span>
+                        {m.emailId !== '-' && <span>✉️ {m.emailId}</span>}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '10px',
+                    mt: 1,
+                    overflowX: 'auto',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <DashboardTable
+                    data={membersData}
+                    columns={membersColumns}
+                    customStyles={{
+                      headRow: {
+                        style: {
+                          backgroundColor: '#0a2558',
+                          minHeight: '46px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        },
+                      },
+                      headCells: {
+                        style: {
+                          backgroundColor: '#0a2558',
+                          color: '#ffffff',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          letterSpacing: '0.02em',
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                        },
+                      },
+                      cells: {
+                        style: {
+                          paddingLeft: '12px',
+                          paddingRight: '12px',
+                          fontSize: '13px',
+                          color: '#1e293b',
+                        },
+                      },
+                      rows: {
+                        style: {
+                          minHeight: '46px',
+                          '&:hover': {
+                            backgroundColor: '#f8fafc',
+                          },
+                        },
+                      },
+                      pagination: {
+                        style: {
+                          minHeight: '44px',
+                          borderTop: '1px solid #e2e8f0',
+                          color: '#64748b',
+                        },
+                      },
+                    }}
+                    sx={{
+                      '& .rdt_TableHead': {
+                        backgroundColor: '#0a2558',
+                      },
+                      '& .rdt_TableHeadRow': {
                         backgroundColor: '#0a2558',
                         minHeight: '46px',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                       },
-                    },
-                    headCells: {
-                      style: {
-                        backgroundColor: '#0a2558',
-                        color: '#ffffff',
-                        fontSize: '13px',
-                        fontWeight: '700',
+                      '& .rdt_TableCol': {
+                        backgroundColor: '#0a2558 !important',
+                        color: '#ffffff !important',
+                        fontWeight: '700 !important',
+                        fontSize: '0.85rem !important',
                         letterSpacing: '0.02em',
-                        paddingLeft: '12px',
-                        paddingRight: '12px',
+                        '&:hover': {
+                          color: '#ffffff !important',
+                        },
+                        '& svg': {
+                          fill: '#ffffff !important',
+                        },
                       },
-                    },
-                    cells: {
-                      style: {
-                        paddingLeft: '12px',
-                        paddingRight: '12px',
-                        fontSize: '13px',
-                        color: '#1e293b',
+                      '& .rdt_TableCol_Sortable': {
+                        color: '#ffffff !important',
+                        '&:hover': {
+                          color: '#ffffff !important',
+                        },
+                        '& span': {
+                          color: '#ffffff !important',
+                        },
+                        '& svg': {
+                          fill: '#ffffff !important',
+                        },
+                        '& > div:first-of-type': {
+                          overflow: 'visible',
+                          whiteSpace: 'nowrap',
+                        },
                       },
-                    },
-                    rows: {
-                      style: {
-                        minHeight: '46px',
+                      '& .rdt_TableRow': {
                         '&:hover': {
                           backgroundColor: '#f8fafc',
                         },
                       },
-                    },
-                    pagination: {
-                      style: {
-                        minHeight: '44px',
-                        borderTop: '1px solid #e2e8f0',
-                        color: '#64748b',
-                      },
-                    },
-                  }}
-                  sx={{
-                    '& .rdt_TableHead': {
-                      backgroundColor: '#0a2558',
-                    },
-                    '& .rdt_TableHeadRow': {
-                      backgroundColor: '#0a2558',
-                      minHeight: '46px',
-                    },
-                    '& .rdt_TableCol': {
-                      backgroundColor: '#0a2558 !important',
-                      color: '#ffffff !important',
-                      fontWeight: '700 !important',
-                      fontSize: '0.85rem !important',
-                      letterSpacing: '0.02em',
-                      '&:hover': {
-                        color: '#ffffff !important',
-                      },
-                      '& svg': {
-                        fill: '#ffffff !important',
-                      },
-                    },
-                    '& .rdt_TableCol_Sortable': {
-                      color: '#ffffff !important',
-                      '&:hover': {
-                        color: '#ffffff !important',
-                      },
-                      '& span': {
-                        color: '#ffffff !important',
-                      },
-                      '& svg': {
-                        fill: '#ffffff !important',
-                      },
-                      '& > div:first-of-type': {
-                        overflow: 'visible',
-                        whiteSpace: 'nowrap',
-                      },
-                    },
-                    '& .rdt_TableRow': {
-                      '&:hover': {
-                        backgroundColor: '#f8fafc',
-                      },
-                    },
-                  }}
-                />
-              </Box>
+                    }}
+                  />
+                </Box>
+              )
             }
             sx={{
               background: '#0a2558',

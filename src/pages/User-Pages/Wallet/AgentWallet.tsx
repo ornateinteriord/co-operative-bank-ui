@@ -22,6 +22,7 @@ import {
 import TokenService from "../../../api/token/tokenService";
 import { useGetAgentWalletOverview, useAgentWalletWithdraw } from "../../../api/Memeber";
 import { toast } from "react-toastify";
+import TransactionCardsView from "../../../components/common/TransactionCardsView";
 
 const AgentWallet = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -347,17 +348,26 @@ const AgentWallet = () => {
           >
             Commission History
           </AccordionSummary>
-          <AccordionDetails sx={{ p: 0 }}>
+          <AccordionDetails sx={{ p: isMobile ? 1 : 0 }}>
             {walletData?.transactions && walletData.transactions.length > 0 ? (
-              <DataTable
-                columns={getWalletColumns()}
-                data={walletData.transactions}
-                pagination
-                customStyles={DASHBOARD_CUTSOM_STYLE}
-                paginationPerPage={10}
-                highlightOnHover
-                responsive
-              />
+              isMobile ? (
+                <TransactionCardsView
+                  transactions={walletData.transactions}
+                  title="Commission History"
+                  pageSize={10}
+                  emptyMessage="No commission records found"
+                />
+              ) : (
+                <DataTable
+                  columns={getWalletColumns()}
+                  data={walletData.transactions}
+                  pagination
+                  customStyles={DASHBOARD_CUTSOM_STYLE}
+                  paginationPerPage={10}
+                  highlightOnHover
+                  responsive
+                />
+              )
             ) : (
               <Box sx={{ textAlign: "center", py: 6 }}>
                 <Typography variant="h6" color="textSecondary">

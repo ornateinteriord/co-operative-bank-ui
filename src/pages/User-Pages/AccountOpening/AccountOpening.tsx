@@ -17,14 +17,13 @@ import { toast } from 'react-toastify';
 import * as MemberQueries from '../../../queries/Member';
 import { useGetTransactionDetails, useTransferMoney } from '../../../api/Memeber';
 import { exportToExcel } from '../../../utils/excelExport';
-import DataTable from "react-data-table-component";
-import { DASHBOARD_CUTSOM_STYLE, getTransactionColumns } from "../../../utils/DataTableColumnsProvider";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import AddIcon from '@mui/icons-material/Add';
 import AddMoneyDialog from '../../../components/Wallet/AddMoneyDialog';
+import TransactionCardsView from '../../../components/common/TransactionCardsView';
 
 const ACCOUNT_THEMES: Record<string, any> = {
   SB: {
@@ -76,7 +75,6 @@ const UserAccountOpening = () => {
   const navigate = useNavigate();
   const memberId = TokenService.getMemberId() || '';
   const [showBalance, setShowBalance] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Self Transfer State
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -181,14 +179,6 @@ const UserAccountOpening = () => {
   // Fetch transactions for statement if account exists
   const { data: txData, isLoading: loadingTx } = useGetTransactionDetails('all', accountGroup?.account_type || accountType);
   const transactions = txData?.data || [];
-
-  const filteredTransactions = useMemo(() => {
-    if (!searchQuery) return transactions;
-    const query = searchQuery.toLowerCase();
-    return transactions.filter((tx: any) =>
-      Object.values(tx).some(val => val?.toString().toLowerCase().includes(query))
-    );
-  }, [transactions, searchQuery]);
 
   const handleDownloadStatement = () => {
     if (!existingAccount) {
@@ -396,22 +386,22 @@ const UserAccountOpening = () => {
 
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Box>
-                          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          <Typography sx={{ color: '#ffffff !important', opacity: 0.9, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                             Account Type
                           </Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                            {existingAccount.account_group_name}
+                          <Typography variant="h5" sx={{ fontWeight: 800, color: '#ffffff !important' }}>
+                            {existingAccount.account_group_name || accountType}
                           </Typography>
                         </Box>
-                        <AccountBalanceWalletIcon sx={{ color: 'rgba(255,255,255,0.3)', fontSize: 40 }} />
+                        <AccountBalanceWalletIcon sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 40 }} />
                       </Box>
 
                       <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 1 }}>
                         <Box>
-                          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          <Typography sx={{ color: '#ffffff !important', opacity: 0.9, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                             Account Number
                           </Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '1px' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '1px', color: '#ffffff !important' }}>
                             {existingAccount.account_no === 'NaN' || !existingAccount.account_no ? existingAccount.account_id : existingAccount.account_no}
                           </Typography>
                         </Box>
@@ -465,18 +455,18 @@ const UserAccountOpening = () => {
                         </Box>
                       </Box>
 
-                      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 1 }} />
+                      <Divider sx={{ borderColor: 'rgba(255,255,255,0.15)', my: 1 }} />
 
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Box>
-                          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          <Typography sx={{ color: '#ffffff !important', opacity: 0.9, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                             Available Balance
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Typography variant="h4" sx={{ fontWeight: 900 }}>
+                            <Typography variant="h4" sx={{ fontWeight: 900, color: '#ffffff !important' }}>
                               {showBalance ? `₹${Number(existingAccount.account_amount || 0).toLocaleString('en-IN')}` : '••••••••'}
                             </Typography>
-                            <IconButton onClick={() => setShowBalance(!showBalance)} sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                            <IconButton onClick={() => setShowBalance(!showBalance)} sx={{ color: 'rgba(255,255,255,0.85)' }}>
                               {showBalance ? <VisibilityOffIcon /> : <VisibilityIcon />}
                             </IconButton>
                           </Box>
@@ -599,38 +589,15 @@ const UserAccountOpening = () => {
                   </Grid>
                 </Grid>
 
-                {/* Transactions Section */}
-                <Box sx={{ mt: 6 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <HistoryIcon sx={{ color: theme.primary }} />
-                      <Typography variant="h6" sx={{ fontWeight: 800, color: '#1e293b' }}>
-                        Recent Transactions
-                      </Typography>
-                    </Box>
-                    <TextField
-                      placeholder="Search transactions..."
-                      size="small"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      sx={{
-                        width: 250,
-                        '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'white' }
-                      }}
-                    />
-                  </Box>
-
-                  <Paper elevation={0} sx={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                    <DataTable
-                      columns={getTransactionColumns()}
-                      data={filteredTransactions}
-                      pagination
-                      customStyles={DASHBOARD_CUTSOM_STYLE}
-                      paginationPerPage={10}
-                      highlightOnHover
-                      progressPending={loadingTx}
-                    />
-                  </Paper>
+                {/* Transactions Section - Modern Cards */}
+                <Box sx={{ mt: 5 }}>
+                  <TransactionCardsView
+                    transactions={transactions}
+                    isLoading={loadingTx}
+                    title="Recent Transactions"
+                    pageSize={10}
+                    emptyMessage="No transactions found for this account"
+                  />
                 </Box>
               </Box>
             ) : (
