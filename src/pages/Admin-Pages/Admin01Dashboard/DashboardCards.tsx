@@ -22,16 +22,20 @@ const DashboardCards = ({ counts, recentData }: DashboardCardsProps) => {
   const [accountTypesDialogOpen, setAccountTypesDialogOpen] = useState(false);
 
   // Format recent members data for table
-  const membersData = (recentData?.recentMembers || []).map((member: Member) => ({
-    name: member?.name || 'N/A',
-    memberNum: member?.member_id || 'N/A',
-    dateOfJoining: member?.date_of_joining
-      ? new Date(member.date_of_joining).toLocaleDateString('en-GB')
-      : 'N/A',
-    emailId: member?.emailid || '-',
-    mobileNo: member?.contactno || 'N/A',
-    status: member?.status || 'active',
-  }));
+  const membersData = (recentData?.recentMembers || []).map((member: Member) => {
+    const dateRaw = member?.date_of_joining || member?.Date_of_joining || member?.createdAt;
+    const parsedDate = dateRaw ? new Date(dateRaw) : null;
+    return {
+      name: member?.name || member?.Name || 'N/A',
+      memberNum: member?.member_id || member?.Member_id || 'N/A',
+      dateOfJoining: (parsedDate && !isNaN(parsedDate.getTime()))
+        ? parsedDate.toLocaleDateString('en-GB')
+        : 'N/A',
+      emailId: member?.emailid || member?.email || '-',
+      mobileNo: (member?.contactno || member?.mobileno || 'N/A').toString().trim(),
+      status: member?.status || 'active',
+    };
+  });
 
   // Format recent accounts data for timeline
   const accountsTimelineData = (recentData?.recentAccounts || []).map((account: Account) => ({

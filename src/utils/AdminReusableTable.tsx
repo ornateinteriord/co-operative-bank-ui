@@ -385,8 +385,13 @@ const AdminReusableTable = <T extends Record<string, any>>({
     }
 
     if (column.id === 'date') {
+      if (!value || value === '-') return '-';
       try {
-        return new Date(value).toLocaleDateString('en-US', {
+        const parsedDate = new Date(value);
+        if (isNaN(parsedDate.getTime())) {
+          return value;
+        }
+        return parsedDate.toLocaleDateString('en-GB', {
           day: '2-digit',
           month: 'short',
           year: 'numeric',

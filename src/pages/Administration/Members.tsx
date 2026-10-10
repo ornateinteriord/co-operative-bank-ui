@@ -35,7 +35,7 @@ import {
   useGetMembers,
   useCreateMember,
   useUpdateMember,
-  Member as MemberType
+  // Member as MemberType
 } from '../../queries/admin/index';
 import { exportToExcel } from '../../utils/excelExport';
 
@@ -106,44 +106,69 @@ const Members: React.FC = () => {
 
   const updateMemberMutation = useUpdateMember();
 
+  // Helper to extract clean member fields regardless of backend casing
+  const extractMemberData = (member: any): Member => {
+    const member_id = member.member_id || member.Member_id || '-';
+    const rawName = member.name || member.Name || '-';
+    const email = member.emailid || member.email || '-';
+    const contact = (member.contactno || member.mobileno || '-').toString().trim();
+    const father_name = member.father_name || member.Father_name || '-';
+    const dateRaw = member.date_of_joining || member.Date_of_joining || member.createdAt;
+    let formattedDate = '-';
+    if (dateRaw) {
+      const d = new Date(dateRaw);
+      if (!isNaN(d.getTime())) {
+        formattedDate = d.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
+    }
+    let formattedDob = '-';
+    if (member.dob) {
+      const d = new Date(member.dob);
+      if (!isNaN(d.getTime())) {
+        formattedDob = d.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      }
+    }
+
+    const rawStatus = (member.status || 'Active').toLowerCase();
+    const status = (rawStatus === 'active' ? 'Active' : rawStatus === 'blocked' ? 'Blocked' : 'Inactive') as 'Active' | 'Inactive' | 'Blocked';
+
+    return {
+      id: member._id || '',
+      member_id,
+      date: formattedDate,
+      name: `${rawName} (${member_id})`,
+      email,
+      contact,
+      status,
+      membershipType: 'Basic',
+      action: '',
+      father_name,
+      gender: member.gender || member.Gender || '-',
+      dob: formattedDob,
+      age: member.age ? member.age.toString() : '-',
+      address: member.address || '-',
+      pan_no: member.pan_no || member.Pan_no || '-',
+      aadharcard_no: member.aadharcard_no || member.Aadharcard || '-',
+      voter_id: member.voter_id || '-',
+      nominee: member.nominee || member.Nominee_name || '-',
+      relation: member.relation || member.Nominee_Relation || '-',
+      occupation: member.occupation || '-',
+      introducer: member.introducer || member.Sponsor_code || '-',
+      introducer_name: member.introducer_name || member.Sponsor_name || '-',
+      branch_id: member.branch_id || '-'
+    };
+  };
+
   // Transform API data to table format
-  const members: Member[] = membersData?.data?.map((member: MemberType) => ({
-    id: member._id || '',
-    member_id: member.member_id,
-    date: member.date_of_joining
-      ? new Date(member.date_of_joining).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
-      : '-',
-    name: `${member.name || '-'} (${member.member_id})`,
-    email: member.emailid || '-',
-    contact: member.contactno || '-',
-    status: (member.status === 'active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive' | 'Blocked',
-    membershipType: 'Basic',
-    action: '',
-    father_name: member.father_name || '-',
-    gender: member.gender || '-',
-    dob: member.dob
-      ? new Date(member.dob).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
-      : '-',
-    age: member.age ? member.age.toString() : '-',
-    address: member.address || '-',
-    pan_no: member.pan_no || '-',
-    aadharcard_no: member.aadharcard_no || '-',
-    voter_id: member.voter_id || '-',
-    nominee: member.nominee || '-',
-    relation: member.relation || '-',
-    occupation: member.occupation || '-',
-    introducer: member.introducer || '-',
-    introducer_name: member.introducer_name || '-',
-    branch_id: member.branch_id || '-'
-  })) || [];
+  const members: Member[] = membersData?.data?.map(extractMemberData) || [];
 
   const columns = [
     {
@@ -516,26 +541,23 @@ const Members: React.FC = () => {
   };
 
   // Transform all members data for printing/export
-  const allMembersForExport = (allMembersData?.data || []).map((member: MemberType) => ({
-    id: member._id || '',
-    member_id: member.member_id,
-    displayName: member.name || '-',
-    email: member.emailid || '-',
-    contact: member.contactno || '-',
-    father_name: member.father_name || '-',
-    gender: member.gender || '-',
-    dob: member.dob
-      ? new Date(member.dob).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
-      : '-',
-    pan_no: member.pan_no || '-',
-    aadharcard_no: member.aadharcard_no || '-',
-    occupation: member.occupation || '-',
-    status: member.status === 'active' ? 'Active' : 'Inactive',
-  }));
+  const allMembersForExport = (allMembersData?.data || []).map((rawMember: any) => {
+    const member = extractMemberData(rawMember);
+    return {
+      id: member.id,
+      member_id: member.member_id,
+      displayName: member.name.split(' (')[0],
+      email: member.email,
+      contact: member.contact,
+      father_name: member.father_name,
+      gender: member.gender,
+      dob: member.dob,
+      pan_no: member.pan_no,
+      aadharcard_no: member.aadharcard_no,
+      occupation: member.occupation,
+      status: member.status,
+    };
+  });
 
   const handleTablePrint = useReactToPrint({
     contentRef: tablePrintRef,
@@ -559,29 +581,32 @@ const Members: React.FC = () => {
     setIsExporting(true);
 
     setTimeout(() => {
-      const dataToExport = (allMembersData?.data || []).map((member: MemberType) => ({
-        date: member.date_of_joining ? new Date(member.date_of_joining).toLocaleDateString('en-GB') : '-',
-        member_id: member.member_id,
-        displayName: member.name || '-',
-        email: member.emailid || '-',
-        contact: member.contactno || '-',
-        father_name: member.father_name || '-',
-        gender: member.gender || '-',
-        dob: member.dob ? new Date(member.dob).toLocaleDateString('en-GB') : '-',
-        age: member.age ? member.age.toString() : '-',
-        address: member.address || '-',
-        pan_no: member.pan_no || '-',
-        aadharcard_no: member.aadharcard_no || '-',
-        voter_id: member.voter_id || '-',
-        nominee: member.nominee || '-',
-        relation: member.relation || '-',
-        occupation: member.occupation || '-',
-        introducer: member.introducer || '-',
-        introducer_name: member.introducer_name || '-',
-        branch_id: member.branch_id || '-',
-        membershipType: 'Basic',
-        status: member.status === 'active' ? 'Active' : 'Inactive'
-      }));
+      const dataToExport = (allMembersData?.data || []).map((rawMember: any) => {
+        const member = extractMemberData(rawMember);
+        return {
+          date: member.date,
+          member_id: member.member_id,
+          displayName: member.name.split(' (')[0],
+          email: member.email,
+          contact: member.contact,
+          father_name: member.father_name,
+          gender: member.gender,
+          dob: member.dob,
+          age: member.age,
+          address: member.address,
+          pan_no: member.pan_no,
+          aadharcard_no: member.aadharcard_no,
+          voter_id: member.voter_id,
+          nominee: member.nominee,
+          relation: member.relation,
+          occupation: member.occupation,
+          introducer: member.introducer,
+          introducer_name: member.introducer_name,
+          branch_id: member.branch_id,
+          membershipType: 'Basic',
+          status: member.status
+        };
+      });
 
       exportToExcel({
         fileName: `Members_List_${new Date().toISOString().split('T')[0]}`,
