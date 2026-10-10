@@ -77,7 +77,7 @@ const DashboardCard = ({
                   variant="caption"
                   sx={{
                     fontSize: '0.75rem',
-                    color: 'rgba(255, 255, 255, 0.7)',
+                    color: statusColor,
                     fontWeight: 500,
                   }}
                 >

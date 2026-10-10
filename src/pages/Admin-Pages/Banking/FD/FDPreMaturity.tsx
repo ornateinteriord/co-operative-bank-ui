@@ -112,7 +112,7 @@ const FDPreMaturity: React.FC = () => {
                         sx={{ textTransform: 'none' }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedCertAccountId(row.account_id);
+                            setSelectedCertAccountId(row.account_id || row.account_no || null);
                             setCertModalOpen(true);
                         }}
                     >

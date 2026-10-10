@@ -35,7 +35,6 @@ import {
   useGetMembers,
   useCreateMember,
   useUpdateMember,
-  // Member as MemberType
 } from '../../queries/admin/index';
 import { exportToExcel } from '../../utils/excelExport';
 

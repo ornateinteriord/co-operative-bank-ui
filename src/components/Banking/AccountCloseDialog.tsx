@@ -51,7 +51,7 @@ const AccountCloseDialog: React.FC<AccountCloseDialogProps> = ({
     const processPrematureClosureMutation = useProcessPrematureClosure();
 
     // Fetch premature closure penalty preview from backend when pre-maturity
-    const { data: previewResponse, isLoading: isPreviewLoading } = useGetPrematureClosurePreview(
+    const { data: previewResponse } = useGetPrematureClosurePreview(
         account?.account_id,
         open && !isMatured
     );

@@ -1,4 +1,4 @@
-import { createTheme, alpha } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 
 /**
  * Modern Corporate Banking Theme
