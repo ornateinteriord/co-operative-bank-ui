@@ -640,8 +640,8 @@ const UserAccountOpening = () => {
               >
                 {allMyAccounts
                   .filter(acc => acc.account_no !== existingAccount?.account_no)
-                  .map((acc) => (
-                    <MenuItem key={acc._id} value={acc.account_no}>
+                  .map((acc, idx) => (
+                    <MenuItem key={acc.account_no || acc.account_id || acc._id || idx} value={acc.account_no}>
                       {acc.groupName} - {acc.account_no} (Bal: ₹{acc.account_amount?.toLocaleString()})
                     </MenuItem>
                   ))}
