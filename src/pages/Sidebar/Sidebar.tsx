@@ -82,16 +82,19 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
       }
     }
   }, [location.pathname, menuItems]);
-  const userId = TokenService.getUserId()
-  const memberMutatation = useGetMemberDetails(userId!)
-  const { data: fethedUser, isError, error } = memberMutatation
-  const name = fethedUser?.Name || fethedUser?.username
+  const isUserRole = role === "USER";
+  const userId = TokenService.getUserId();
+  const memberMutatation = useGetMemberDetails(isUserRole ? userId! : null);
+  const { data: fethedUser, isError, error } = memberMutatation;
+
+  const decodedToken = TokenService.decodeToken() as any;
+  const name = fethedUser?.Name || fethedUser?.username || decodedToken?.user_name || decodedToken?.userId;
 
   useEffect(() => {
-    if (isError) {
-      toast.error(error?.message || 'Failed to fetch user details')
+    if (isError && isUserRole) {
+      toast.error(error?.message || 'Failed to fetch user details');
     }
-  }, [isError, error])
+  }, [isError, error, isUserRole]);
 
 
 
@@ -156,7 +159,7 @@ const Sidebar = ({ isOpen, onClose, role }: { isOpen: boolean, onClose: () => vo
                   marginTop: '0px',
                 } : { fontWeight: 'bold' }}>
                   {fethedUser?.Name || name}
-                  {isNidhiRole && <><br />ID: {fethedUser?.Member_id || fethedUser?.member_id || fethedUser?.username || fethedUser?.id || ''}</>}
+                  {isNidhiRole && <><br />ID: {fethedUser?.Member_id || fethedUser?.member_id || fethedUser?.username || fethedUser?.id || decodedToken?.userId || decodedToken?.memberId || ''}</>}
                 </Typography>
               </div>
             </div>

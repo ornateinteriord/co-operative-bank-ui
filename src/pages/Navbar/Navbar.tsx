@@ -26,6 +26,7 @@ import useAuth from "../../hooks/use-auth";
 import TokenService from "../../api/token/tokenService";
 import { useState } from "react";
 import { useGetMemberDetails } from "../../api/Memeber";
+import { useGetAgentById } from "../../queries/Agent";
 
 interface NavbarProps {
   shouldHide?: boolean;
@@ -37,14 +38,46 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 899px)');
   const { isLoggedIn, userRole } = useAuth();
-  const isAgent = userRole === "AGENT";
-  const isUser = userRole === "USER";
+
+  const decoded = TokenService.decodeToken() as any;
+  const effectiveRole = (userRole || decoded?.role || "").toUpperCase();
+
+  const isAdminRole = effectiveRole === "ADMIN" || effectiveRole === "ADMIN_01";
+  const isAgent = effectiveRole === "AGENT";
+  const isUser = effectiveRole === "USER";
   const isMemberOrAgent = isUser || isAgent;
-  const isAdmin = userRole === "ADMIN" || userRole === "ADMIN_01" || userRole === "AGENT";
+  const canToggleSidebar = isAdminRole || isAgent;
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const userId = TokenService.getMemberId();
-  const { data: memberDetails } = useGetMemberDetails(userId);
+  const memberId = TokenService.getMemberId();
+  const loginId = TokenService.getLoginUserId();
+
+  // Fetch Member Details only if logged-in user is a MEMBER
+  const { data: memberDetails } = useGetMemberDetails(isUser ? memberId : null);
+  // Fetch Agent Details only if logged-in user is an AGENT
+  const { data: agentData } = useGetAgentById(loginId || memberId || "", isAgent);
+
+  // Compute clean display values for Admin, Agent, Member
+  let displayName = "";
+  let displayRoleLabel = "Member";
+  let displayId = "";
+
+  if (isAdminRole) {
+    displayRoleLabel = "Admin";
+    displayName = decoded?.user_name || decoded?.userId || "admin";
+    displayId = decoded?.userId || decoded?.user_name || "admin";
+  } else if (isAgent) {
+    displayRoleLabel = "Agent";
+    displayName = agentData?.data?.name || decoded?.user_name || "Agent";
+    displayId = agentData?.data?.agent_id || decoded?.userId || decoded?.memberId || "";
+  } else {
+    displayRoleLabel = "Member";
+    displayName = memberDetails?.Name || decoded?.user_name || "Member";
+    displayId = memberDetails?.Member_id || decoded?.memberId || decoded?.userId || "";
+  }
+
+  const avatarInitial = (displayName || displayRoleLabel).charAt(0).toUpperCase();
 
   if (shouldHide) return null;
 
@@ -167,13 +200,13 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
             </Box>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {isAdmin && onToggleSidebar && (
+              {canToggleSidebar && onToggleSidebar && (
                 <IconButton
                   onClick={onToggleSidebar}
                   sx={{
                     color: "white",
                     mr: 0.5,
-                    display: { xs: (userRole === "ADMIN" || userRole === "ADMIN_01") ? 'flex' : 'none', md: 'flex' }
+                    display: { xs: isAdminRole ? 'flex' : 'none', md: 'flex' }
                   }}
                 >
                   <MenuIcon size={22} />
@@ -227,19 +260,18 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
                     color: '#0a2558',
                     fontWeight: 800,
                     fontSize: '0.9rem',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                   }}
                 >
-                  {memberDetails?.Name?.charAt(0).toUpperCase() || (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
+                  {avatarInitial}
                 </Avatar>
                 <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'left' }}>
                   <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, lineHeight: 1.2, fontSize: '0.85rem' }}>
-                    {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
+                    {displayName}
                   </Typography>
-                  {memberDetails?.Member_id && (
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem' }}>
-                      ID: {memberDetails.Member_id}
-                    </Typography>
-                  )}
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.7rem' }}>
+                    {displayRoleLabel}{displayId ? ` • ${displayId}` : ''}
+                  </Typography>
                 </Box>
                 <ChevronDown size={16} color="white" style={{ opacity: 0.8 }} />
               </Box>
@@ -254,6 +286,7 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
           onClose={handleMenuClose}
           PaperProps={{
             className: Boolean(anchorEl) ? "custom-menu open" : "custom-menu",
+            sx: { minWidth: 200 }
           }}
         >
           <Box
@@ -266,48 +299,74 @@ const Navbar = ({ shouldHide, onToggleSidebar }: NavbarProps) => {
             }}
           >
             <Avatar
-              alt="User"
+              alt={displayName}
               sx={{
                 width: 48,
                 height: 48,
                 mb: 1,
                 bgcolor: '#0a2558',
                 color: '#ffffff',
-                fontWeight: 700,
+                fontWeight: 800,
+                fontSize: '1.2rem',
+                boxShadow: '0 4px 10px rgba(10,37,88,0.2)'
               }}
             >
-              {memberDetails?.Name
-                ? memberDetails.Name.charAt(0).toUpperCase()
-                : (userRole === "AGENT" ? 'A' : userRole === "ADMIN" ? 'A' : 'U')}
+              {avatarInitial}
             </Avatar>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0a2558' }}>
-              {memberDetails?.Name || (userRole === "AGENT" ? "Agent" : userRole === "ADMIN" ? "Admin" : "Member")}
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0a2558', textAlign: 'center' }}>
+              {displayName}
             </Typography>
-            {memberDetails?.Member_id && (
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
-                ID: {memberDetails.Member_id}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, bgcolor: '#f1f5f9', px: 1, py: 0.25, borderRadius: '12px' }}>
+              <Typography variant="caption" sx={{ color: '#0a2558', fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                {displayRoleLabel}
               </Typography>
-            )}
+              {displayId && (
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+                  ({displayId})
+                </Typography>
+              )}
+            </Box>
           </Box>
 
           <Divider sx={{ my: 0.5 }} />
 
-          <MenuItem onClick={() => { handleMenuClose(); if (userRole === "AGENT") { navigate("/agent/profile"); } else if (userRole === "ADMIN" || userRole === "ADMIN_01") { navigate("/admin/dashboard"); } else { navigate("/user/account/profile"); } }}>
-            <User size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
-            My Profile
-          </MenuItem>
+          {/* Profile / Dashboard link depending on role */}
+          {isAdminRole ? (
+            <MenuItem onClick={() => { handleMenuClose(); navigate(effectiveRole === "ADMIN_01" ? "/admin_01/dashboard" : "/admin/dashboard"); }}>
+              <User size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+              Admin Dashboard
+            </MenuItem>
+          ) : isAgent ? (
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/agent/profile"); }}>
+              <User size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+              Agent Profile
+            </MenuItem>
+          ) : (
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/user/account/profile"); }}>
+              <User size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+              My Profile
+            </MenuItem>
+          )}
 
-          {userRole === "USER" && (
+          {/* Role-specific second item */}
+          {isUser && (
             <MenuItem onClick={() => { handleMenuClose(); navigate("/user/passbook"); }}>
               <BookOpen size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
               Passbook
             </MenuItem>
           )}
 
-          {(userRole === "ADMIN" || userRole === "ADMIN_01") && (
+          {isAdminRole && (
             <MenuItem onClick={() => { handleMenuClose(); navigate("/admin_01/passbook"); }}>
               <BookOpen size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
               Passbook Printing
+            </MenuItem>
+          )}
+
+          {isAgent && (
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/agent/dashboard"); }}>
+              <BookOpen size={16} style={{ marginRight: "10px", color: "#0a2558" }} />
+              Agent Dashboard
             </MenuItem>
           )}
 

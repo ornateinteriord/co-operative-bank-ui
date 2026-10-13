@@ -21,7 +21,7 @@ class TokenService {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
   }
 
-  static decodeToken(): { id: string; role: string; memberId: string } | null {
+  static decodeToken(): { id: string; role: string; memberId?: string; userId?: string; user_name?: string } | null {
     const token = this.getToken();
     if (!token) return null;
 
@@ -50,6 +50,15 @@ class TokenService {
 
   static getUserId(): string | null {
     return this.decodeToken()?.id || null;
+  }
+
+  static getUserName(): string | null {
+    return this.decodeToken()?.user_name || null;
+  }
+
+  static getLoginUserId(): string | null {
+    const decoded = this.decodeToken() as any;
+    return decoded?.userId || decoded?.memberId || decoded?.user_name || decoded?.id || null;
   }
 
   static removeToken(): void {
